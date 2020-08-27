@@ -1,0 +1,21 @@
+name: PPCA
+channels:
+  - anaconda
+  - conda-forge
+  - defaults
+dependencies:
+  - jupyter
+  - jupyter_client
+  - jupyter_console
+  - jupyter_core
+  - pandas
+  - pyvista
+  - scipy
+  - seaborn
+  - statsmodels
+  - spyder
+  - tqdm
+  - vtk
+  - pip:
+    - pycpd
+    - trimesh
