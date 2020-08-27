@@ -3,6 +3,17 @@ Repository for the python code in DeMars et al. 2020
 
 Funding information: Division of Behavioral and Cognitive Sciences, Grant/Award Numbers: 171987, 1847806; European Research Council, Grant/Award Number: 617627; RCUK BBSRC, Grant/Award Number: BB/R01292X/1 
 
+# Dependencies
+vtk
+pycpd
+pandas
+pyvista
+trimesh
+
+* optional *
+pymc3
+
+
 ```
 @Article{DeMars2020,
   author    = {Lily J. D. DeMars and Nicholas B. Stephens and Jaap P. P. Saers and Adam Gordon and Jay T. Stock and Timothy M. Ryan},
