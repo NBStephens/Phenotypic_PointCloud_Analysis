@@ -4,13 +4,13 @@ Repository for the python code in DeMars et al. 2020
 Funding information: Division of Behavioral and Cognitive Sciences, Grant/Award Numbers: 171987, 1847806; European Research Council, Grant/Award Number: 617627; RCUK BBSRC, Grant/Award Number: BB/R01292X/1 
 
 # Dependencies
-vtk
-pycpd
-pandas
-pyvista
+vtk,
+pycpd,
+pandas,
+pyvista,
 trimesh
 
-* optional *
+* optional
 pymc3
 
 
