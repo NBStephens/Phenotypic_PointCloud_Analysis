@@ -48,6 +48,7 @@ Alternatively you can use conda to install the environment from the command line
 conda env create --name=PPCA --file=/where/the/yaml/file/is/PPCA_conda.yaml
 ```
 
+### Useage
 
 The virtual environment can then be accessed through the command line in a jupyter console/qt-console
 
