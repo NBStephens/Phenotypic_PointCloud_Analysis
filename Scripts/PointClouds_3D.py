@@ -8,21 +8,7 @@ import pandas as pd
 import pyvista as pv
 from pandas.errors import EmptyDataError
 from timeit import default_timer as timer
-
-if platform.system() == "Windows":
-    if socket.gethostname() == "Irreverent":
-        sys.path.append(r"D:\Desktop\git_repo")
-    else:
-        sys.path.append(r"Z:\RyanLab\Projects\NStephens\git_repo")
-
-if platform.system() == 'Linux':
-    if 'redhat' in platform.platform():
-        sys.path.append(r"/gpfs/group/LiberalArts/default/tmr21_collab/RyanLab/Projects/NStephens/git_repo")
-else:
-        sys.path.append(r"/mnt/ics/RyanLab/Projects/NStephens/git_repo")
-from MARS.morphology.vtk_mesh import *
-from MARS.registration.pycpd_registrations_3D import *
-from MARS.utils.MARS_utils import _end_timer
+from Phenotypic_PointCloud_Analysis.code.pycpd_registrations_3D import *
 
 ######################################
 #    Begin the actual operations     #

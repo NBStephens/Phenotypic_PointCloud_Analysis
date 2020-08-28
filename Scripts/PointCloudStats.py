@@ -6,21 +6,8 @@ import pathlib
 import platform
 import pandas as pd
 import pyvista as pv
-
-if platform.system() == "Windows":
-    if socket.gethostname() == "Irreverent":
-        sys.path.append(r"D:\Desktop\git_repo")
-    else:
-        sys.path.append(r"Z:\RyanLab\Projects\NStephens\git_repo")
-
-if platform.system() == 'Linux':
-    if 'redhat' in platform.platform():
-        sys.path.append(r"/gpfs/group/LiberalArts/default/tmr21_collab/RyanLab/Projects/NStephens/git_repo")
-else:
-        sys.path.append(r"/mnt/ics/RyanLab/Projects/NStephens/git_repo")
-
-from MARS.registration.pycpd_registrations_3D import *
-from MARS.stats.get_pvalues_point_cloud import *
+from Phenotypic_PointCloud_Analysis.code.pycpd_registrations_3D import *
+from Phenotypic_PointCloud_Analysis.code.get_pvalues_point_cloud import *
 
 ############################################################
 #                                                          #
