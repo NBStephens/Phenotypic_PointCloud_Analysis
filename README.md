@@ -1,9 +1,13 @@
 # Phenotypic PointCloud Analysis
 Repository for the python code in DeMars et al. 2020
 
-If there are any questions please feel free to contact the primary authors at  nbs49@psu.edu or ldj@psu.edu
+If there are any questions please feel free to contact the primary authors at nbs49@psu.edu or lvd5263@psu.edu
 
 Funding information: Division of Behavioral and Cognitive Sciences, Grant/Award Numbers: 171987, 1847806; European Research Council, Grant/Award Number: 617627; RCUK BBSRC, Grant/Award Number: BB/R01292X/1 
+
+### Description
+
+The Phenotypic PointCloud Analysis is an open source python worflow that allows for the three dimensional registration, statistical analysis, and visualization of scalar data associated with points generated from tetrahedral meshes. This worfklow utilizes the coherent point drift algorithm or Myronenko and Song, 2010 ( 10.1109/tpami.2010.46) to perform a rigid, affine, and deformable registration of a mean shape to inviddual points clouds. Thereafter the scalar information associated with the individual point clouds is statistically analyzed following the statistical parametric methods describved by Worsley et al. 1996 (10.1002/(sici)1097-0193(1996)4:1<58::aid-hbm4>3.0.co;2-o) and Friston et al. 1994 (10.1002/hbm.460020402). The statistical results may then be visualized in 3d on a tetrahedral mesh of the mean morphology in various freely available visualization platforms (e.g. paraview). This method was most recently demonstrated in DeMars et al 2020 (10.1002/ajhb.23468), using trabecular and cortical bone values derived from micro-CT scans of human calcanei. If you use this code in any of your work, please cite the described soruces and the following paper:
 
 
 ```
