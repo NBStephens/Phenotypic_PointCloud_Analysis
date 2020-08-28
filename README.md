@@ -1,6 +1,8 @@
 # Phenotypic PointCloud Analysis
 Repository for the python code in DeMars et al. 2020
 
+<a href="https://zenodo.org/badge/latestdoi/290870082"><img src="https://zenodo.org/badge/290870082.svg" alt="DOI"></a>
+
 If there are any questions please feel free to contact the primary authors at nbs49@psu.edu or lvd5263@psu.edu
 
 Funding information: Division of Behavioral and Cognitive Sciences, Grant/Award Numbers: 171987, 1847806; European Research Council, Grant/Award Number: 617627; RCUK BBSRC, Grant/Award Number: BB/R01292X/1 
