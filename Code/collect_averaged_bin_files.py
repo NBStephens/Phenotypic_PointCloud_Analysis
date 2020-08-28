@@ -1,7 +1,7 @@
 #Script to collect mesh registerd binary files in wxRegSurf v17 into one mean binary
 
 # By Nick Stephens
-# Sharon Kuo was there for moral support, barely
+# Sharon Kuo was there to break code and help out a lot. 
 import os
 import sys
 import glob
