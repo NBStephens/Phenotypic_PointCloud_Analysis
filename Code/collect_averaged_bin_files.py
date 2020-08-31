@@ -5,21 +5,19 @@
 import os
 import sys
 import glob
-import itertools
-import pathlib
 import struct
 import shutil
+import pathlib
 import trimesh
+import itertools
 import scipy.stats
-import trimesh
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
-from timeit import default_timer as timer
-from statsmodels.stats.anova import anova_lm
 from scipy.spatial import distance
+from timeit import default_timer as timer
 from scipy.ndimage import gaussian_filter1d
-
+from statsmodels.stats.anova import anova_lm
 
 
 def get_mean_case_2d(mean_fileList, outname, canonical_geo):
@@ -594,7 +592,7 @@ bone = "Radius_Dist"
 ply_list = glob.glob("*.ply")
 for f in ply_list:
     out_name = f.replace(".ply", "_cortical.csv")
-    points =
+    #points =
 
 #Read it in so we can get the resel value and uvalue for the pvalue thresholding
 #point_cloud_model = pd.read_csv(point_cloud_model[0], header=None)

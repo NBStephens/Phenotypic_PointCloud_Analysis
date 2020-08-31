@@ -28,10 +28,13 @@ import socket
 import shutil
 import pathlib
 import platform
+import itertools
 import numpy as np
 import pandas as pd
 import pyvista as pv
+import seaborn as sns
 from functools import partial
+import matplotlib.pylab as pylab
 import matplotlib.pyplot as plt
 from scipy.stats import variation
 from mpl_toolkits.mplot3d import Axes3D
@@ -39,19 +42,11 @@ from vtk.util import numpy_support as npsup
 from scipy.interpolate import griddata
 from timeit import default_timer as timer
 
-if platform.system() == "Windows":
-    if socket.gethostname() == "Irreverent":
-        sys.path.append(r"D:\Desktop\git_repo")
-    else:
-        sys.path.append(r"Z:\RyanLab\Projects\NStephens\git_repo")
 
-if platform.system() == 'Linux':
-    if 'redhat' in platform.platform():
-        sys.path.append(r"/gpfs/group/LiberalArts/default/tmr21_collab/RyanLab/Projects/NStephens/git_repo")
-else:
-        sys.path.append(r"/mnt/ics/RyanLab/Projects/NStephens/git_repo")
-from MARS.utils.readPar import get_output_path
-from MARS.utils.MARS_utils import _end_timer, _get_outDir
+script_dir = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(str(script_dir.parent))
+from Code.PPCA_utils import get_output_path
+from Code.PPCA_utils import _end_timer, _get_outDir, _vtk_print_mesh_info
 
 
 def visualize(iteration, error, X, Y, ax):
@@ -1870,3 +1865,84 @@ def vtp_visualize_deformation(point_cloud_dir, canonical_pc, outName):
                  outName=str(deformed_name),
                  outDir=diagnostic_dir,
                  outType="binary")
+
+def case_to_vtk(inputMesh, outName):
+    """
+    Function to convert a case and its scalars to a vtk file.
+    :param inputMesh:
+    :return:
+    """
+    mesh = vtk_read_case(inputMesh)
+    conversion = pv.wrap(mesh)
+    vtk_mesh = conversion.pop(0)
+    outName.replace(".vtk", "")
+    vtk_mesh.save(f"{outName}.vtk")
+
+def vtk_read_case(inputMesh):
+    """
+    Function to read in engishtgold case files.
+    :param inputMesh:
+    :return:
+    """
+    start = timer()
+    reader = vtk.vtkEnSightGoldReader()
+    reader.SetCaseFileName(str(inputMesh))
+    reader.Update()
+    vtk_mesh = reader.GetOutput()
+    print("\n")
+    _vtk_print_mesh_info(vtk_mesh)
+    print("\n")
+    _end_timer(start, message="Reading in Case file")
+    return vtk_mesh
+
+
+def get_distplot(registered_dataset, scalar, fontsize=2, legendfont=40, xlim=[0.0, 1.0], colors="Paired", background="white"):
+    registered_dataset = pd.DataFrame(registered_dataset.groupby('group').mean()).T
+    registered_dataset['Mean'] = registered_dataset.mean(axis=1)
+    group_list = list(registered_dataset.columns)
+    if isinstance(colors, list):
+        colors = [str(x).lower() for x in colors]
+        colors = sns.color_palette(colors)
+    else:
+        colors = sns.color_palette(str(colors), len(group_list))
+    sns.set(rc={'figure.figsize': (24.4, 14.4)})
+    sns.set(font_scale=fontsize)
+    if background == "white":
+        sns.set_style("white")
+    sns.despine(left=True)
+
+    fig, ax = plt.subplots()
+    for r in range(len(group_list)):
+        sns.distplot(registered_dataset[[str(group_list[r])]], hist=False, rug=True, label=str(group_list[r]),
+                     kde_kws={"lw": 5, "alpha": 1, "color": colors[r]},
+                     rug_kws={"alpha": .1, "color": colors[r]}, ax=ax).set(xlim=(float(xlim[0]), float(xlim[1])))
+    plt.setp(ax.get_legend().get_texts(), fontsize=legendfont)
+    ax.set(xlabel=str(scalar), ylabel='Counts')
+    return fig
+
+def consolidate_case(inputMesh, outName, nameMatch, scalars=["BVTV", "DA"], outputs=["_original_average.case", "_original_coef_var.case", "_original_standard_dev.case"], max_normazlied=True, pairwise=False):
+    mesh = vtk_read_case(inputMesh)
+    conversion = pv.wrap(mesh)
+    vtk_mesh = conversion.pop(0)
+    vtk_mesh.clear_arrays()
+    if pairwise:
+        possibilities = list(itertools.combinations(nameMatch, 2))
+        consolidate_scalars = [f"{scalar}*{name[0]}_vs_{name[1]}" for name in possibilities for scalar in scalars]
+    else:
+        consolidate_scalars = [f"{name}*{scalar}" for name in nameMatch for scalar in scalars]
+    for consolidate in consolidate_scalars:
+        print(consolidate)
+        for output in outputs:
+            new_case = glob.glob(f"{consolidate}{output}")
+            print(new_case)
+            if len(new_case) == 1:
+                temp_case = vtk_read_case(new_case[0])
+                temp_conversion = pv.wrap(temp_case)
+                temp_mesh = temp_conversion.pop(0)
+                temp_array_name = list(temp_mesh.point_arrays.items())[0][0]
+                temp_array_name = temp_array_name.replace('ESca1', '')
+                temp_array_name = temp_array_name.replace('_original_', '_')
+                temp_array = list(temp_mesh.point_arrays.items())[0][1]
+                vtk_mesh[str(temp_array_name)] = temp_array
+    outName = outName.replace(".vtk", "")
+    vtk_mesh.save(f"{outName}.vtk")
