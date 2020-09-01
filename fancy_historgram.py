@@ -14,7 +14,7 @@ from Code.pycpd_registrations_3D import get_distplot
 color_pallete = ["#72008F", "#CC0000", "#005EBA", "#000000"] #FFB90F"], #"#00C4CC"]
 
 #Point towrads the poitn cloud directory and change into it
-point_cloud_dir = pathlib.Path(r"Z:\RyanLab\Projects\NStephens\Canids\Point_cloud\Humerus")
+point_cloud_dir = pathlib.Path(r"D:\Desktop\Canids\Point_cloud\Femur")
 os.chdir(point_cloud_dir)
 
 #Provide the sclar list, which can be quite long.
