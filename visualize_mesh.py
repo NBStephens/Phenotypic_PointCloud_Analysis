@@ -291,7 +291,7 @@ def generate_stats_plot(input_mesh, scalar, scalar_value, scalar_type, limits=[-
                                     invert=False,
                                     continuous=False,
                                     preference='point',
-                                    all_scalars=False)
+                                    all_scalars=True)
 
 
     vel_dargs = dict(scalars=f"{scalar_name}", clim=limits, cmap=colormap,
@@ -455,9 +455,9 @@ get_scalar_screens(input_mesh=input_mesh, scalars=["DA"], limits=[0.0, 0.50], co
 
 
 #For getting the p-value thresholds in the same format.
-stats_dir = pathlib.Path(r"D:\Desktop\Canids\Point_cloud\Femur\BVTV")
+stats_dir = pathlib.Path(r"D:\Desktop\Canids\Point_cloud\Humerus\BVTV")
 os.chdir(stats_dir)
-stats_mesh = pv.read("Femur_consolidated_ttest.vtk")
+stats_mesh = pv.read("humerus_consolidated_ttest.vtk")
 
 get_ttest_screens(input_mesh=stats_mesh,
                   scalars=["BVTV", "DA"],
