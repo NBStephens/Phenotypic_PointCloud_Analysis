@@ -1925,6 +1925,7 @@ def consolidate_case(inputMesh, outName, nameMatch, scalars=["BVTV", "DA"], outp
     conversion = pv.wrap(mesh)
     vtk_mesh = conversion.pop(0)
     vtk_mesh.clear_arrays()
+    nameMatch = list(nameMatch)
     if pairwise:
         possibilities = list(itertools.combinations(nameMatch, 2))
         consolidate_scalars = [f"{scalar}*{name[0]}_vs_{name[1]}" for name in possibilities for scalar in scalars]
@@ -1933,9 +1934,12 @@ def consolidate_case(inputMesh, outName, nameMatch, scalars=["BVTV", "DA"], outp
     for consolidate in consolidate_scalars:
         print(consolidate)
         for output in outputs:
-            new_case = glob.glob(f"{consolidate}{output}")
+            new_case = glob.glob(f"*{consolidate}*{output}*.case")
+            #new_case = glob.glob(f"*{output}")
             print(new_case)
-            if len(new_case) == 1:
+            if len(new_case) == 0:
+                print("No case files match the consolidation criteria")
+            elif len(new_case) == 1:
                 temp_case = vtk_read_case(new_case[0])
                 temp_conversion = pv.wrap(temp_case)
                 temp_mesh = temp_conversion.pop(0)
@@ -1944,5 +1948,16 @@ def consolidate_case(inputMesh, outName, nameMatch, scalars=["BVTV", "DA"], outp
                 temp_array_name = temp_array_name.replace('_original_', '_')
                 temp_array = list(temp_mesh.point_arrays.items())[0][1]
                 vtk_mesh[str(temp_array_name)] = temp_array
+            else:
+                for temp in new_case:
+                    temp_case = vtk_read_case(temp)
+                    temp_conversion = pv.wrap(temp_case)
+                    temp_mesh = temp_conversion.pop(0)
+                    temp_array_name = list(temp_mesh.point_arrays.items())[0][0]
+                    temp_array_name = temp_array_name.replace('ESca1', '')
+                    temp_array_name = temp_array_name.replace('_original_', '_')
+                    temp_array_name = temp_array_name.replace('__', '_')
+                    temp_array = list(temp_mesh.point_arrays.items())[0][1]
+                    vtk_mesh[str(temp_array_name)] = temp_array
     outName = outName.replace(".vtk", "")
     vtk_mesh.save(f"{outName}.vtk")

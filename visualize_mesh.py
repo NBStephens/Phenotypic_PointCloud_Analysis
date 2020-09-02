@@ -18,6 +18,34 @@ for blue in linear_blue:
 
 '''
 
+def merge_pdfs(pdf_directory, out_name, string_match="", output_directory=""):
+    pdf_writer = PdfFileWriter()
+    pdf_directory = pathlib.Path(pdf_directory)
+    if string_match == "":
+        pdf_list = glob.glob(str(pdf_directory.joinpath(f"*.pdf")))
+    else:
+        pdf_list = glob.glob(str(pdf_directory.joinpath(f"*{string_match}*.pdf")))
+    if output_directory == "":
+        output_directory = pathlib.Path.cwd()
+    else:
+        output_directory = pathlib.Path(output_directory)
+    if len(pdf_list) == 0:
+        print("No pdf files found!")
+    else:
+        pdf_list.sort(key=natural_keys)
+        out_name = out_name.replace(".pdf", "")
+        output_file = output_directory.joinpath(f"{out_name}.pdf")
+        print(f"Found {len(pdf_list)} pdf file. Combining now...")
+        for pdf in pdf_list:
+            pdf_reader = PdfFileReader(pdf)
+            for page in range(pdf_reader.getNumPages()):
+                # Add each page to the writer object
+                pdf_writer.addPage(pdf_reader.getPage(page))
+
+        # Write out the merged PDF
+        with open(output_file, 'wb') as out:
+            pdf_writer.write(out)
+
 def colormap_from_paraview(paraview_json):
     """
     Function to return the hex colormap from a paraview json. You can export this by choosing the colormap and hitting
@@ -38,8 +66,10 @@ def get_scalar_screens(input_mesh, scalars=["BVTV", "DA"], limits=[0.0, 0.50], c
     DA_colors = cm.get_cmap(linear_blue)
     Coef_colors = cm.get_cmap(name="hot", lut=10)
     Standard_dev_colors = cm.get_cmap(name="PiYG_r", lut=10)
+    cort_colors = cm.get_cmap(blue_orange_div)
 
-    scalar_color_dict = {"BVTV": BVTV_colors, "DA": DA_colors, "coef": Coef_colors, "std": Standard_dev_colors}
+    scalar_color_dict = {"BVTV": BVTV_colors, "DA": DA_colors, "CtTh": cort_colors,
+                         "coef": Coef_colors, "std": Standard_dev_colors}
     #Clean up an stupid naming thing I've done....
     for s_array in input_mesh.point_arrays:
         new_array = s_array.replace("DA_", "_DA_")
@@ -49,18 +79,26 @@ def get_scalar_screens(input_mesh, scalars=["BVTV", "DA"], limits=[0.0, 0.50], c
 
     for scalar in scalars:
         scalar_list = list(input_mesh.point_arrays)
+        if scalar not in scalar_list:
+            print(f"{scalar} not found in point arrays")
+            coef_scalar = f"_coef_var"
+            std_scalar = f"_standard_dev"
+            full_list = [measure for measure in scalar_list if "_average" in measure]
+            if len(full_list) == 0:
+                full_list = [measure for measure in scalar_list if "_original" in measure]
 
-        full_list = [measure for measure in scalar_list if "_average" and str(scalar) in measure]
-        average_list = [list_item for list_item in full_list if "_coef_var" not in list_item]
-        average_list = [list_item for list_item in average_list if "_standard_dev" not in list_item]
+        else:
+            coef_scalar = f"{scalar}_coef_var"
+            std_scalar = f"{scalar}_standard_dev"
+            full_list = [measure for measure in scalar_list if "_average" and str(scalar) in measure]
 
         coef_list = [measure for measure in full_list if "_coef_var" in measure]
         std_list = [measure for measure in full_list if "_standard_dev" in measure]
+        average_list = [list_item for list_item in full_list if "_coef_var" not in list_item]
+        average_list = [list_item for list_item in average_list if "_standard_dev" not in list_item]
 
-        coef_scalar = f"{scalar}_coef_var"
         coef_limits = _get_scalar_limits(input_mesh=input_mesh, scalar=coef_scalar, divergent=False)
 
-        std_scalar = f"{scalar}_standard_dev"
         std_limits = _get_scalar_limits(input_mesh=input_mesh, scalar=std_scalar, divergent=False)
 
         for average_scalar in average_list:
@@ -379,18 +417,50 @@ def generate_stats_plot(input_mesh, scalar, scalar_value, scalar_type, limits=[-
     else:
         plotter.show(interactive=False, use_panel=False, screenshot=str(screen_shot))
 
+def alpha_to_int(text):
+    clean_text = int(text) if text.isdigit() else text
+    return clean_text
+
+def alpha_to_float(text):
+    try:
+        retval = float(text)
+    except ValueError:
+        retval = text
+    return retval
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    '''
+    return [alpha_to_int(c) for c in re.split(r'(\d+)', text)]
+
+def natural_keys_float(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    float regex comes from https://stackoverflow.com/a/12643073/190597
+    '''
+    return [alpha_to_float(c) for c in re.split(r'[+-]?([0-9]+(?:[.][0-9]*)?|[.][0-9]+)', text)]
+
+
 import os
+import re
 import sys
+import glob
 import pathlib
 import numpy as np
 import pandas as pd
 import pyvista as pv
 from matplotlib import cm
 from matplotlib.colors import rgb2hex
+from PyPDF2 import PdfFileWriter, PdfFileReader
 from scipy.spatial.transform import Rotation as R
 from matplotlib.colors import LinearSegmentedColormap
 
-directory = pathlib.Path(r"D:\Desktop\Canids\Point_cloud\Femur")
+directory = pathlib.Path(r"D:\Desktop\Canids\wxegSurf\Femur")
 os.chdir(directory)
 
 #Set the theme, default,  dark,
@@ -438,8 +508,14 @@ cort_colors = cm.get_cmap(blue_orange_div)
 stats_colors = cm.get_cmap(cold_and_hot, lut=10)
 
 #Define the input name and read in to memory for visualization
-mesh_name = "femur_consolidated_scalars.vtk"
+mesh_name = "femur_consolidated_CtTh_scalars.vtk"
 input_mesh = pv.read(mesh_name)
+
+#For getting the p-value thresholds in the same format.
+stats_dir = pathlib.Path(r"D:\Desktop\Canids\wxegSurf\Femur\CtTh")
+os.chdir(stats_dir)
+stats_mesh = pv.read("humerus_consolidated_CtTh_ttest.vtk")
+
 
 #Output either a png or a pdf
 get_scalar_screens(input_mesh=input_mesh,
@@ -452,12 +528,8 @@ get_scalar_screens(input_mesh=input_mesh,
 #If one scalar is being used or the range shoudl be somehting different
 get_scalar_screens(input_mesh=input_mesh, scalars=["BVTV"], limits=[0.0, 0.60], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf")
 get_scalar_screens(input_mesh=input_mesh, scalars=["DA"], limits=[0.0, 0.50], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf")
+get_scalar_screens(input_mesh=input_mesh, scalars=["CtTh"], limits=[0.0, 2.50], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf")
 
-
-#For getting the p-value thresholds in the same format.
-stats_dir = pathlib.Path(r"D:\Desktop\Canids\Point_cloud\Humerus\BVTV")
-os.chdir(stats_dir)
-stats_mesh = pv.read("humerus_consolidated_ttest.vtk")
 
 get_ttest_screens(input_mesh=stats_mesh,
                   scalars=["BVTV", "DA"],
@@ -467,3 +539,22 @@ get_ttest_screens(input_mesh=stats_mesh,
 
 get_ttest_screens(input_mesh=stats_mesh, scalars=["BVTV"], estimate_limits=True, output_type="png")
 get_ttest_screens(input_mesh=stats_mesh, scalars=["DA"], estimate_limits=True, output_type="png")
+get_ttest_screens(input_mesh=stats_mesh, scalars=["CtTh"], estimate_limits=True, n_of_bar_txt_portions=11, output_type="pdf")
+
+#Clean up old arrays
+for array in input_mesh.point_arrays:
+    print(array)
+    new_name = array.replace("Canis_", "")
+    new_name = new_name.replace("C_", "get_rid_of")
+    new_name = new_name.replace("canonical_", "Mean_")
+    new_name = new_name.replace("canonincal_", "Mean_")
+    new_name = new_name.replace("Neofelis_", "")
+    input_mesh.rename_array(str(array), new_name)
+
+
+#Gather all the pdfs into a single pdf
+merge_pdfs(pdf_directory=stats_dir, string_match="", out_name="Canid_femur_CtTh_results.pdf", output_directory="")
+
+dist_plot_dir = r"D:\Desktop\Canids\Results\Distplots"
+
+merge_pdfs(pdf_directory=dist_plot_dir, string_match="", out_name="Canid_distplot_results.pdf", output_directory=dist_plot_dir)
