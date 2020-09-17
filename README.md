@@ -26,10 +26,6 @@ The Phenotypic PointCloud Analysis is an open source python worflow that allows 
   publisher = {Wiley},
 }
 ```
-Lily J. D. DeMars
-
-
-Nicholas B. Stephens <div itemscope itemtype="https://schema.org/Person"><a itemprop="sameAs" content="https://orcid.org/0000-0002-2838-5606" href="https://orcid.org/0000-0002-2838-5606" target="orcid.widget" rel="me noopener noreferrer" style="vertical-align:top;"><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width:1em;margin-right:.5em;" alt="ORCID iD icon">https://orcid.org/0000-0002-2838-5606</a></div>
 
 ### Installing
 
@@ -80,11 +76,24 @@ spyder
 Base scripts for various work flows are maintained in the ./Scripts folder (PointClouds_3D) but there are many funcitons that may be adapted to your work.
 
 
-You can see examples of the workflow here:
+### Workflow examples
 
 
 
-Publications using these routines: 
+### Publications
 
 
+### Authors
+
+Lily J. D. DeMars <div itemscope itemtype="https://schema.org/Person"><a itemprop="sameAs" content="https://orcid.org/0000-0001-5138-5818" href="https://orcid.org/0000-0001-5138-5818" target="orcid.widget" rel="me noopener noreferrer" style="vertical-align:top;"><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width:1em;margin-right:.5em;" alt="ORCID iD icon"> https://orcid.org/0000-0001-5138-5818</a></div>
+
+Nicholas B. Stephens <div itemscope itemtype="https://schema.org/Person"><a itemprop="sameAs" content="https://orcid.org/0000-0002-2838-5606" href="https://orcid.org/0000-0002-2838-5606" target="orcid.widget" rel="me noopener noreferrer" style="vertical-align:top;"><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width:1em;margin-right:.5em;" alt="ORCID iD icon">https://orcid.org/0000-0002-2838-5606</a></div>
+
+ Jaap P. P. Saers <div itemscope itemtype="https://schema.org/Person"><a itemprop="sameAs" content="https://orcid.org/0000-0003-3209-2969" href="https://orcid.org/0000-0003-3209-2969" target="orcid.widget" rel="me noopener noreferrer" style="vertical-align:top;"><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width:1em;margin-right:.5em;" alt="ORCID iD icon">https://orcid.org/0000-0003-3209-2969</a></div>
+  
+ Adam Gordon <div itemscope itemtype="https://schema.org/Person"><a itemprop="sameAs" content="https://orcid.org/0000-0002-1807-4644" href="https://orcid.org/0000-0002-1807-4644" target="orcid.widget" rel="me noopener noreferrer" style="vertical-align:top;"><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width:1em;margin-right:.5em;" alt="ORCID iD icon">https://orcid.org/0000-0002-1807-4644</a></div>
+ 
+ Jay T. Stock 
+ 
+ Timothy M. Ryan
 
