@@ -1961,3 +1961,44 @@ def consolidate_case(inputMesh, outName, nameMatch, scalars=["BVTV", "DA"], outp
                     vtk_mesh[str(temp_array_name)] = temp_array
     outName = outName.replace(".vtk", "")
     vtk_mesh.save(f"{outName}.vtk")
+
+
+def consolidate_vtk(input_mesh, out_name, name_match, bayes_match=False, scalars=["BVTV", "DA", "BSBV", "Tb_Sp", "Tb_Th"], pairwise=False):
+    vtk_mesh = pv.read(input_mesh)
+    vtk_mesh.clear_arrays()
+    if bayes_match:
+        consolidate_scalars = []
+        for scalar in scalars:
+            consolidate_scalars.append(glob.glob(f"*{scalar}*{name_match}*.vtk"))
+        consolidate_scalars = list(itertools.chain.from_iterable(consolidate_scalars))
+    elif pairwise:
+        possibilities = list(itertools.combinations(name_match, 2))
+        consolidate_scalars = [f"{scalar}*{name[0]}_vs_{name[1]}" for name in possibilities for scalar in scalars]
+    else:
+        consolidate_scalars = [f"{name_match}{scalar}" for scalar in scalars]
+    consolidate_scalars
+    for consolidate in consolidate_scalars:
+        print(f"\n Consolidating {consolidate}")
+        temp_mesh = pv.read(consolidate)
+        array_names = list(temp_mesh.point_arrays)
+        for temp_array_name in array_names:
+            # The consequences of building this without a proper road map
+            new_array_name = temp_array_name.replace('ESca1', '')
+            new_array_name = new_array_name.replace('_original_', '_')
+            new_array_name = new_array_name.replace('_smooth_', '_')
+            new_array_name = new_array_name.replace('_mean_mean_', '_')
+            new_array_name = new_array_name.replace('_max_normalized_mean_', '_max_normalized_')
+            new_array_name = new_array_name.replace('_max_normalized_', '_max_norm_')
+            new_array_name = new_array_name.replace('_std_', '_standard_dev_')
+            new_array_name = new_array_name.replace("DA_val01_", "DA_")
+            for scalar in scalars:
+                new_array_name = new_array_name.replace(f'{scalar}_mean_', f'{scalar}_')
+            new_array_name = f"{new_array_name}_{name_match}"
+            if new_array_name[0] == "_":
+                new_array_name = f"{new_array_name[1:]}"
+            print(f"              {new_array_name}")
+            temp_array = temp_mesh[temp_array_name]
+            vtk_mesh[str(new_array_name)] = temp_array
+    out_name = out_name.replace(".vtk", "")
+    out_name = out_name.replace("__", "_")
+    vtk_mesh.save(f"{out_name}.vtk")
