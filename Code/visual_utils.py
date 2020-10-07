@@ -16,7 +16,6 @@ def _get_scalar_limits(input_mesh, scalar, scalar_list, divergent=True, remove_m
     """
     "Function to calculate the upper and lower bounds from a set of scalar points in a mesh."
     """
-    vtk_mesh = input_mesh
     current_list = [measure for measure in scalar_list if scalar in measure]
     if remove_max_norm:
         current_list = [measure for measure in current_list if "max_norm" not in measure]
@@ -31,7 +30,6 @@ def _get_scalar_limits(input_mesh, scalar, scalar_list, divergent=True, remove_m
         print(f'{scalar}:', array_min_max)
         print('\n')
         limits = array_min_max
-
     return limits
 
 def _get_min_max(input_mesh, scalar_list):
@@ -41,7 +39,7 @@ def _get_min_max(input_mesh, scalar_list):
     current_list = scalar_list
     array_min_max = []
     for points in current_list:
-        current_array = input_mesh.point_arrays[points]
+        current_array = np.array(input_mesh.get_data_range(arr=str(points)))
         try:
             current_array_min = float(current_array[(current_array < 100) & (current_array > -100)].min())
         except ValueError:
@@ -137,6 +135,14 @@ def scalar_name_cleanup(input_mesh, replace_dict):
                 pass
     return renamed_mesh
 
+def scalar_name_suffix(input_mesh, suffix):
+    renamed_mesh = input_mesh.copy()
+    for s_array in renamed_mesh.point_arrays:
+        new_array = f"{s_array}{suffix}"
+        new_array = new_array.replace(f"{suffix}{suffix}", f"{suffix}")
+        renamed_mesh.rename_array(s_array, new_array)
+    return renamed_mesh
+
 def subset_scalar_list(scalar_list, scalar, scalar_string="", remove_strings=False, stringent=False, verbose=False):
     if scalar_string != "":
         try:
@@ -191,7 +197,7 @@ def _get_analytical_lists(scalar_list, scalar):
         hdi_list = subset_scalar_list(scalar_list=scalar_list,
                                       scalar=str(scalar),
                                       scalar_string="_HDI_range",
-                                      remove_strings=["_standard_dev"],
+                                      remove_strings=["_standard_dev", "_coef_var"],
                                       stringent=True,
                                       verbose=False)
 
@@ -205,7 +211,7 @@ def _get_analytical_lists(scalar_list, scalar):
                 "HDI": hdi_list, "Sd": sd_list}
 
 
-def get_scalar_screens(input_mesh, scalars=["BVTV", "DA"], limits=[0.0, 0.50], consistent_limits=True, n_of_bar_txt_portions=11, output_type="png", from_bayes=False):
+def get_scalar_screens(input_mesh, scalars=["BVTV", "DA"], limits=[0.0, 0.50], consistent_limits=True, n_of_bar_txt_portions=11, output_type="png", from_bayes=False, scale_without_max_norm=True):
     scalar_color_dict_10 = _generate_color_dict(n_bins=10)
     scalar_color_dict_256 = _generate_color_dict(n_bins=256)
     for scalar in scalars:
@@ -219,7 +225,7 @@ def get_scalar_screens(input_mesh, scalars=["BVTV", "DA"], limits=[0.0, 0.50], c
                                                       scalar=scalar,
                                                       scalar_list=values,
                                                       divergent=False,
-                                                      remove_max_norm=True,
+                                                      remove_max_norm=scale_without_max_norm,
                                                       average_scalar=False)
                 if not consistent_limits:
                         for value in values:
@@ -253,8 +259,6 @@ def get_scalar_screens(input_mesh, scalars=["BVTV", "DA"], limits=[0.0, 0.50], c
                                   n_of_bar_txt_portions=n_of_bar_txt_portions,
                                   output_type=output_type,
                                   from_bayes=from_bayes)
-
-
 
 def generate_plot(input_mesh, scalar, scalar_value, scalar_type, colormap, limits=[0, 0.50], n_of_bar_txt_portions=11, output_type="png", from_bayes=False):
         output_choices = ["svg", "eps", "ps", "pdf", "tex"]
@@ -671,3 +675,18 @@ def _generate_color_dict(n_bins=10):
                          "Std. Dev.": standard_dev_colors, "HDI": hdi_colors, "stats": stats_colors, "POS": pos_colors,
                          "Sd": standard_dev_colors}
     return scalar_color_dict
+
+def remove_array(input_mesh, remove_arrays):
+    """
+    I couldn't find a pop method or something similar in pyvista.
+    """
+    remove_arrays: list = remove_arrays
+    altered_mesh = input_mesh.copy()
+    scalar_list = list(altered_mesh.point_arrays)
+    for remove in remove_arrays:
+        scalar_list = [keep for keep in scalar_list if remove not in keep]
+    altered_mesh.clear_arrays()
+    for scalar in scalar_list:
+        altered_mesh[scalar] = input_mesh[scalar]
+    return altered_mesh
+

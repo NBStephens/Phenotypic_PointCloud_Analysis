@@ -19,7 +19,7 @@ from scipy.spatial.transform import Rotation as R
 from matplotlib.colors import LinearSegmentedColormap
 sys.path.append(r"D:\git_pulls\Phenotypic_PointCloud_Analysis")
 from Code.visual_utils import *
-from Code.pycpd_registrations_3D import consolidate_vtk
+from Code.pycpd_registrations_3D import consolidate_vtk, consolidate_case
 
 directory = pathlib.Path(r"D:\Desktop\Sharon\visualize")
 os.chdir(directory)
@@ -89,6 +89,8 @@ os.chdir(directory)
 
 #Define the input name and read in to memory for visualization
 mesh_name = "BSBV_smooth_bayes_HDI_range_mapped.vtk"
+mesh_name = "max_normalized_CtTh_bayes_posterior_mean_mapped.vtk"
+mesh_name = "max_normalized_CtTh_bayes_HDI_range_mapped.vtk"
 
 bayes_outputs = ["posterior_mean", "posterior_sd", "HDI_range", "posterior_ninetyseven", "posterior_three"]
 for output in bayes_outputs:
@@ -98,8 +100,27 @@ for output in bayes_outputs:
 mesh_name = "radius_posterior_mean.vtk"
 input_mesh = pv.read(mesh_name)
 
-rename_dict = {"_nonKWapes_": "_Homo_sapiens_", "_KWapes_": "_Pan_troglodytes_", "_OWM_": "_old_world_monkeys_"}
+rename_dict = {"_nonKWapes": "_Homo_sapiens", "_KWapes": "_Pan_troglodytes", "_OWM": "_old_world_monkeys",
+               "ESca1Mean_Radius_Dist_": "All_groups_", "All_groups_CtTh_": "CtTh_All_groups_", "_original_average": "",
+               "max_normalized_CtTh_": "CtTh_max_normalized_", "CtTh_max_normalized_All_groups_mean": "CtTh_All_groups",
+               "_std_": "_standard_dev_", "_standrd_dev_": "_standard_dev_"}
+
+rename_dict = {"_std_": "_standard_dev_", "__": "_"}
+rename_dict = {"CtTh_All_groups": "CtTh_max_normalized_All_groups", "__": "_"}
 input_mesh = scalar_name_cleanup(input_mesh=input_mesh, replace_dict=rename_dict)
+input_mesh = scalar_name_suffix(input_mesh=input_mesh, suffix="_posterior_HDI_range")
+input_mesh = remove_array(input_mesh=input_mesh, remove_arrays=["All_groups"])
+
+input_mesh.save(f"{mesh_name}")
+
+get_scalar_screens(input_mesh=input_mesh,
+                   scalars=["CtTh"],
+                   limits=False,
+                   consistent_limits=True,
+                   n_of_bar_txt_portions=11,
+                   output_type="pdf",
+                   from_bayes=True,
+                   scale_without_max_norm=False)
 
 get_scalar_screens(input_mesh=input_mesh,
                    scalars=["BVTV", "DA", "BSBV", "Tb_Sp", "Tb_Th"],
@@ -148,16 +169,23 @@ for output in bayes_stats:
     consolidate_vtk(input_mesh="BSBV_smooth_bayes_CohenD_thresholded_map.vtk", out_name=f"radius_bayes_{output}_thresholds",
                     name_match=f"{output}", bayes_match=True, scalars=["BVTV", "DA", "BSBV", "Tb_Sp", "Tb_Th"], pairwise=True)
 
-stats_mesh = pv.read("radius_bayes_POS_thresholds.vtk")
-rename_dict = {"_nonKWapes_": "_Homo_sapiens_", "_KWapes_": "_Pan_troglodytes_",
-               "_OWM_": "_old_world_monkeys_", "__": "_", "_POS_": "_POS"}
+mesh_name = "max_normalized_CtTh_bayes_CohenD_thresholded_map.vtk"
+stats_mesh = pv.read(f"{mesh_name}")
+rename_dict = {"max_normalized_CtTh_": "CtTh_max_normalized_", "_nonKWapes": "_Homo_sapiens", "_KWapes": "_Pan_troglodytes_",
+               "_OWM": "_old_world_monkeys", "__": "_", "_POS_": "_POS", "__": "_", "_Pan_troglodytes_":  "_Pan_troglodytes"}
 
 stats_mesh = scalar_name_cleanup(input_mesh=stats_mesh, replace_dict=rename_dict)
+stats_mesh = remove_array(input_mesh=stats_mesh, remove_arrays=["_original_average"])
+stats_mesh = scalar_name_suffix(input_mesh=stats_mesh, suffix="_CohenD")
+stats_mesh.save(f"{mesh_name}")
+
+get_bayes_thresh_screens(input_mesh=stats_mesh, scalars=["CtTh"], limits=[0, 1],
+                         estimate_limits=False, n_of_bar_txt_portions=11, output_type="pdf")
 
 get_bayes_thresh_screens(input_mesh=stats_mesh, scalars=["Tb_Sp", "Tb_Th"], limits=[0, 1],
                          estimate_limits=False, n_of_bar_txt_portions=11, output_type="pdf")
 
-stats_mesh = pv.read("radius_bayes_CohenD_thresholds.vtk")
+stats_mesh = pv.read("CtTh_bayes_CohenD_thresholded_map.vtk")
 rename_dict = {"_nonKWapes_": "_Homo_sapiens_", "_KWapes_": "_Pan_troglodytes_",
                "_OWM_": "_old_world_monkeys_", "__": "_", "_POS_": "_POS"}
 
@@ -171,4 +199,9 @@ merge_pdfs(pdf_directory=directory, string_match="", out_name="Radius_trabecular
 directory = r"D:\Desktop\Sharon\visualize\trab_pdf"
 os.chdir(directory)
 
-merge_pdfs(pdf_directory=directory, string_match="", out_name="Radius_trabecular_results.pdf", output_directory="")
+merge_pdfs(pdf_directory=directory, string_match="CtTh", out_name="Radius_cortical_results.pdf", output_directory="")
+
+
+#For Rita
+
+consolidate_case(inputMesh=, outName, nameMatch, scalars=["BVTV", "DA"], outputs=["_original_average.case", "_original_coef_var.case", "_original_standard_dev.case"], max_normazlied=True, pairwise=False)

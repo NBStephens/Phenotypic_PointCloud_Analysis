@@ -542,7 +542,7 @@ def map_cloud(name_in, grid, points, original, canonical_geo, scalar, scalar_val
         original.columns = ['x', 'y', 'z']
         original_mapped = pd.concat([original, scalar_mapped], axis=1)
         #Write out the undistorted point cloud with the interpolated values
-        original_mapped.to_csv(name_in +  "_" + str(scalar) + "_original_mapped.csv", index=False)
+        original_mapped.to_csv(name_in + "_" + str(scalar) + "_original_mapped.csv", index=False)
 
 #Uses scipy interpolate to map the original values to the registered points
 def map_cloud_max_normalized(name_in, grid, points, original, canonical_geo, scalar, scalar_values):
@@ -770,14 +770,16 @@ def initial_rigid(name_in, moving, auto3d_dir="", auto3d_ref = "trabecular", rot
             #Read in the auto3dgm directory to pull the rotation matrix
             auto3d_dir = pathlib.Path(auto3d_dir)
             print(f"\n\n{auto3d_dir}\n\n")
-            rotation_file = pathlib.Path(auto3d_dir).joinpath(str(name_in) + "_" + str(auto3d_ref) + "_rotation_matrix.txt")            
-            
+            rotation_file = pathlib.Path(auto3d_dir).joinpath(f"{name_in}_{str(auto3d_ref)}_rotation_matrix.txt")
             rotation_matrix = pd.read_csv(rotation_file, header=None, delim_whitespace=True)
             #Check to make sure it's the right shape
             print(rotation_matrix.shape)
-            if rotation_matrix.shape[0] == 4:
+            try:
+                if rotation_matrix.shape[0] == 4:
+                    rotation_matrix = pd.read_csv(rotation_file, sep=",")
+            except AttributeError:
                 rotation_matrix = pd.read_csv(rotation_file, sep=",")
-                
+
             if rotation_matrix.shape[1] != moving.shape[1]:
                 print("Matrix and xyz points do not match! \n Must be a nx3 and 3x3 matrix!")
                 print("Rotation matrix:\n", rotation_matrix)
@@ -824,8 +826,7 @@ def initial_rigid(name_in, moving, auto3d_dir="", auto3d_ref = "trabecular", rot
     reg = (rotation_matrix @ moving.T).T
     reg = (origin + reg)
     print(moving)
-    print("\n")
-    print("New matrix:")
+    print("\n New matrix:")
     print(reg)
     if outdir == "":
         np.savetxt(name_in + "_aligned_original.csv", reg, delimiter=",", fmt='%f')
@@ -843,11 +844,10 @@ def set_origin_to_zero(name_In, point_cloud, outDir=""):
     print(point_cloud)
     print(point_cloud.shape)
     centroid = get_centroid(point_cloud)
-    print("Centroid:", centroid, "\n")
+    print(f"Centroid: {centroid}\n")
     print("Setting centroid origin to ~0")
     centered = (point_cloud - centroid)
-    print("\n")
-    print("centroid:")
+    print("\ncentroid:")
     new_centroid = get_centroid(centered)
     with np.printoptions(precision=3, suppress=True):
         print(new_centroid)
@@ -1165,7 +1165,7 @@ def align_vtks(rotation_dict, vtk_list, point_cloud_dir, auto3dgm_dir, substring
         point_check_save = directory.joinpath("rigid").joinpath(f"{value}_aligned_check.csv")
         point_check.to_csv(str(point_check_save), index=False)
 
-def get_initial_aligned_dict(auto3dgm_dir):
+def get_initial_aligned_dict(auto3dgm_dir, csv_list=False):
     auto3d_dir = pathlib.Path(auto3dgm_dir)
     print(f"Getting matching dictionary from rotation matrices...\n")
     #Find the rotation matrix and then reverse name match for the initial rigid
@@ -1174,10 +1174,15 @@ def get_initial_aligned_dict(auto3dgm_dir):
     print(f"Found {len(rotation_names)} matrices in auto3dgm folder....\n")
 
     #This is ugly and I hate it, but it works.
-    rotation_values = ['_'.join(rotation.split("_", 2)[0:2]) + rotation.split("_", 2)[-1].replace("_rotation_matrix.txt", "").replace("_", "") for rotation in rotation_names]
+    rotation_values = ['_'.join(rotation.split("_", 2)[0:2]) +
+                       rotation.split("_", 2)[-1].replace("_rotation_matrix.txt",
+                                                          "").replace("_", "") for rotation in rotation_names]
 
     rotation_dict = dict(zip(rotation_names, rotation_values))
-    vtk_list = glob.glob("*.vtk")
+    if csv_list:
+        vtk_list = glob.glob("*.csv")
+    else:
+        vtk_list = glob.glob("*.vtk")
     vtk_list.sort()
     print(f"Found {len(vtk_list)} vtk files....\n")
 
@@ -1329,6 +1334,8 @@ def batch_rigid(point_cloud_dir, canonical, iterations=100, tolerance=0.001):
 
     if type(canonical) == list:
         canonical_pc = canonical[0]
+    else:
+        canonical_pc = canonical
 
     #Use glob to match text of a file name and build a list of the point clouds to be aligned
     rigid_fileList = glob.glob(str(rigid_directory.joinpath("*_aligned_original.csv")))
@@ -1343,6 +1350,8 @@ def batch_rigid(point_cloud_dir, canonical, iterations=100, tolerance=0.001):
     current_len = len(rigid_fileList)
 
     moving = pd.read_csv(canonical_pc, sep=",", header=None)
+    if type(moving.iloc[0][0]) == str:
+        moving = pd.read_csv(canonical_pc, sep=",")
     moving = moving.values
 
     print(f"There are {len(moving)} points in the moving cloud")
@@ -1569,10 +1578,7 @@ def map_canonical_vtk(scalar_list, mapped_list, canonical_vtk, outDir, group_nam
     max_norm = lambda col: col / col.max()
 
     base_name = [mapped.replace("_original_mapped.csv", "") for mapped in mapped_list]
-    if platform.system().lower() == "windows":
-        column_list = [name.split("\\")[-1] for name in base_name]
-    else:
-        column_list = [name.split("\\")[-1] for name in base_name]
+    column_list = [str(pathlib.Path(name).parts[-1]) for name in base_name]
 
     for scalar in scalar_list:
         print(f"Mapping {scalar} to vtk...")
@@ -1781,7 +1787,8 @@ def get_mean_vtk_groups(group_list, group_identifiers, bone, canonical_vtk, poin
 
     mapping_dir = pathlib.Path(point_cloud_dir).joinpath("mapping")
     results_dir = pathlib.Path(point_cloud_dir).joinpath("results")
-
+    if not results_dir.exists():
+        pathlib.Path.mkdir(results_dir)
     dictionary = dict(zip(group_list, group_identifiers))
     print(dictionary)
     for key, values in dictionary.items():
