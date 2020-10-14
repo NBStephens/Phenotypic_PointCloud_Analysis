@@ -7,9 +7,9 @@ import platform
 import pandas as pd
 import pyvista as pv
 
-script_dir = pathlib.Path(r"D:\git_pulls\Phenotypic_PointCloud_Analysis\Scripts")
+script_dir = pathlib.Path(r"C:\Users\skk5802\Desktop\Phenotypic_PointCloud_Analysis")
 #script_dir = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(str(script_dir.parent))
+sys.path.append(str(script_dir))
 from Code.pycpd_registrations_3D import *
 from Code.get_pvalues_point_cloud import *
 from Code.PPCA_utils import _end_timer, _get_outDir, _vtk_print_mesh_info
@@ -21,23 +21,22 @@ from Code.PPCA_utils import _end_timer, _get_outDir, _vtk_print_mesh_info
 #                                                          #
 ############################################################
 #Define the directory where the files are
-directory = pathlib.Path(r"D:\Desktop\Canids\wxegSurf\humerus")
+directory = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_trabecular\results\stats\removed_gorilla_and_pongo")
 os.chdir(directory)
 
-bone = "humerus"
+bone = "radius"
 
 # Define the group names for subsetting
-group_list = ["latrans", "lupus", "nebulosa"]
-group_identifiers = [group_list[0], group_list[1], group_list[2]]
+group_list = ["KWapes", "Anteaters", "OWM", "nonKWapes"]
 
 # Define the identifying text for each of the members of the group
-#group1_list = ["51202", "51393", "51377", "201588", "51379", "54091"]
-#group2_list = ["23437", "262655", "61795", "211662", "23436", "100068", "133490"]
-#group3_list = ["82096", "Papio_ursinusPapioursinus", "80774", "82097", "43086", "28256", "34712", "52206", "52223", "34714", "169430", "89365"]
-#group4_list = ["NF821349", "NF821350", "NF821282", "NF821211", "200898", "NF819955", "NF819953", "NF819951", "NF820715"]
+group1_list = ["51202", "51393", "51377", "201588", "51379", "54091"]
+group2_list = ["23437", "262655", "61795", "211662", "23436", "100068", "133490"]
+group3_list = ["82096", "Papio_ursinusPapioursinus", "80774", "82097", "43086", "28256", "34712", "52206", "52223", "34714", "169430", "89365"]
+group4_list = ["NF821349", "NF821350", "NF821282", "NF821211", "200898", "NF819955", "NF819953", "NF819951", "NF820715"]
 
 # Create a list of lists for the identifiers
-#group_identifiers = [group1_list, group2_list, group3_list, group4_list]
+group_identifiers = [group1_list, group2_list, group3_list, group4_list]
 
 ################################################
 # Shouldn't need to modify anything below here #
@@ -80,6 +79,8 @@ consolidate_case(inputMesh=f"CtTh_ttest_results_latrans_vs_lupus_Tscore.case",
                  max_normazlied=False,
                  pairwise=True)
 
+
+case_to_vtk(inputMesh=f"{bone}_consolidated_CtTh_ttest.case", outName=f"{bone}_consolidated_CtTh_ttest")
 ################################################
 # For trabecular bone or other 3d volume mesh  #
 ################################################
@@ -108,4 +109,5 @@ get_data_files_for_vtk_scalars(group_list=group_list, group_identifiers=group_id
                                point_cloud_dir=directory, max_normalixed=True)
 
 
-ttest_comparison_vtk(canonical_vtk=canonical_vtk, resels=resels, point_cloud_dir=directory, pvalue=0.05)
+results_vtk = ttest_comparison_vtk(canonical_vtk=canonical_vtk, resels=resels, point_cloud_dir=directory, pvalue=0.05)
+results_vtk.save("t_tests.vtk")

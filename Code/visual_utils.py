@@ -384,14 +384,16 @@ def generate_plot(input_mesh, scalar, scalar_value, scalar_type, colormap, limit
 
 def get_ttest_screens(input_mesh, scalars=["BVTV", "DA"], estimate_limits=True, n_of_bar_txt_portions=11, output_type="png"):
     stats_mesh = input_mesh
-    stats_colors = cm.get_cmap(cold_and_hot)
+    scalar_color_dict_10 = _generate_color_dict(n_bins=10)
+    color_map = scalar_color_dict_10["stats"]
+    stats_colors = color_map
     array_list = list(stats_mesh.point_arrays)
 
     for scalar in scalars:
         scalar_list = [measure for measure in array_list if scalar in measure]
 
         if estimate_limits:
-            limits = _get_scalar_limits(input_mesh=stats_mesh, scalar=scalar)
+            limits = _get_scalar_limits(input_mesh=stats_mesh, scalar=scalar, scalar_list=scalar_list, divergent=True, remove_max_norm=False)
         else:
             limits = list(limits)
 
@@ -468,12 +470,20 @@ def generate_stats_plot(input_mesh, scalar, scalar_value, scalar_type, limits=[-
     limits = limits
     stats_mesh = input_mesh
     print(scalar_name)
-    threshed = stats_mesh.threshold(value=(-100, 100),
-                                    scalars=f'{scalar_name}',
-                                    invert=False,
-                                    continuous=False,
-                                    preference='point',
-                                    all_scalars=True)
+    if pv.__version__ == '0.24.2':
+        threshed = stats_mesh.threshold(value=(-100, 100),
+                                        scalars=f'{scalar_name}',
+                                        invert=False,
+                                        continuous=False,
+                                        preference='point')
+    
+    else:
+        threshed = stats_mesh.threshold(value=(-100, 100),
+                                        scalars=f'{scalar_name}',
+                                        invert=False,
+                                        continuous=False,
+                                        preference='point',
+                                        all_scalars=True)
 
     vel_dargs = dict(scalars=f"{scalar_name}", clim=limits, cmap=colormap,
                      log_scale=False, reset_camera=False)

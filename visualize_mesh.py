@@ -17,27 +17,27 @@ from matplotlib.colors import rgb2hex
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from scipy.spatial.transform import Rotation as R
 from matplotlib.colors import LinearSegmentedColormap
-sys.path.append(r"D:\git_pulls\Phenotypic_PointCloud_Analysis")
+sys.path.append(r"C:\Users\skk5802\Desktop\Phenotypic_PointCloud_Analysis")
 from Code.visual_utils import *
 from Code.pycpd_registrations_3D import consolidate_vtk, consolidate_case
 
-directory = pathlib.Path(r"D:\Desktop\Sharon\visualize")
+directory = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_trabecular\results\stats\removed_gorilla_and_pongo")
 os.chdir(directory)
 
 #Set the theme, default,  dark,
 pv.set_plot_theme("default")
 
-rename_dict = {"DA_": "_DA_", "BVTV_": "_BVTV_", "__": "_"}
+rename_dict = {"_stddev": "_standard_dev"}
 
 
 #Define the input name and read in to memory for visualization
-mesh_name = "femur_consolidated_CtTh_scalars.vtk"
+mesh_name = "new_mean_maps.vtk"
 input_mesh = pv.read(mesh_name)
 
 #For getting the p-value thresholds in the same format.
-stats_dir = pathlib.Path(r"D:\Desktop\Canids\wxegSurf\Femur\CtTh")
+stats_dir = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_trabecular\results\stats\removed_gorilla_and_pongo")
 os.chdir(stats_dir)
-stats_mesh = pv.read("humerus_consolidated_CtTh_ttest.vtk")
+stats_mesh = pv.read("t_tests.vtk")
 
 
 #Output either a png or a pdf
@@ -49,13 +49,13 @@ get_scalar_screens(input_mesh=input_mesh,
                    output_type="pdf")
 
 #If one scalar is being used or the range shoudl be somehting different
-get_scalar_screens(input_mesh=input_mesh, scalars=["BVTV"], limits=[0.0, 0.60], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf")
+get_scalar_screens(input_mesh=input_mesh, scalars=["BVTV"], limits=[0.0, 0.60], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf", from_bayes=True)
 get_scalar_screens(input_mesh=input_mesh, scalars=["DA"], limits=[0.0, 0.50], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf")
 get_scalar_screens(input_mesh=input_mesh, scalars=["CtTh"], limits=[0.0, 2.50], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf")
 
 
 get_ttest_screens(input_mesh=stats_mesh,
-                  scalars=["BVTV", "DA"],
+                  scalars=["BVTV", "DA", "BSBV", "Tb_Sp", "Tb_Th"],
                   estimate_limits=True,
                   n_of_bar_txt_portions=11,
                   output_type="pdf")

@@ -717,7 +717,7 @@ def ttest_comparison_vtk(canonical_vtk, resels, point_cloud_dir, pvalue=0.05):
         #Loop through the possibilites and run a ttest for all of them.
         for p in possibilities:
             #Set up a new dataframe and get the start and end of the compared groups
-            isolated_df = stats_frame[stats_frame['group'].isin(p)]
+            isolated_df = stats_frame[stats_frame['group'].isin(p)]            
             #Get the starting and ending for the paired groups
             start_1 = np.array(np.where(isolated_df["group"] == str(p[0]))).min()
             start_2 = np.array(np.where(isolated_df["group"] == str(p[1]))).min()
@@ -744,8 +744,12 @@ def ttest_comparison_vtk(canonical_vtk, resels, point_cloud_dir, pvalue=0.05):
                 #Get the variance across the set to see if the set and then use non-equal if the ratio
                 # of the highest value and lowest exceeds 1.5 treat as unequal variance
                 # Following from http: // vassarstats.net / textbook / ch14pt1.html
-                var1 = np.var(isolated_df.iloc[int(start_1):int(end_1), 2:].values)
-                var2 = np.var(isolated_df.iloc[int(start_2):int(end_2), 2:].values)
+                if type(isolated_df.iloc[0, 2:3][0]) == str:
+                    var1 = np.var(isolated_df.iloc[int(start_1):int(end_1), 3:].values)
+                    var2 = np.var(isolated_df.iloc[int(start_2):int(end_2), 3:].values)
+                else:
+                    var1 = np.var(isolated_df.iloc[int(start_1):int(end_1), 2:].values)
+                    var2 = np.var(isolated_df.iloc[int(start_2):int(end_2), 2:].values)
                 variances = [var1, var2]
                 variances.sort(reverse=True)
                 variance_ratio = variances[0] / variances[1]
@@ -753,15 +757,24 @@ def ttest_comparison_vtk(canonical_vtk, resels, point_cloud_dir, pvalue=0.05):
 
                 #Isolate the compared groups and put them in a new datafrane that will be written over on each loop.
                 #This step performed a two-tailed t-test for each row of the dataframe.
-
-                if variance_ratio <= 1.5:
-                    isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 2:],
-                                                                     isolated_df.iloc[int(start_2):int(end_2), 2:],
-                                                                     axis=0, equal_var=True)).T
+                if type(isolated_df.iloc[0, 2:3][0]) == str:
+                    if variance_ratio <= 1.5:
+                        isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 3:],
+                                                                         isolated_df.iloc[int(start_2):int(end_2), 3:],
+                                                                         axis=0, equal_var=True)).T
+                    else:
+                        isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 3:],
+                                                                         isolated_df.iloc[int(start_2):int(end_2), 3:],
+                                                                         axis=0, equal_var=False)).T
                 else:
-                    isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 2:],
-                                                                     isolated_df.iloc[int(start_2):int(end_2), 2:],
-                                                                     axis=0, equal_var=False)).T
+                    if variance_ratio <= 1.5:
+                        isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 2:],
+                                                                         isolated_df.iloc[int(start_2):int(end_2), 2:],
+                                                                         axis=0, equal_var=True)).T
+                    else:
+                        isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 2:],
+                                                                         isolated_df.iloc[int(start_2):int(end_2), 2:],
+                                                                         axis=0, equal_var=False)).T
 
                 #Set the column names for the dataframe
                 isolated_df.columns = ['T-score', 'p-value']
