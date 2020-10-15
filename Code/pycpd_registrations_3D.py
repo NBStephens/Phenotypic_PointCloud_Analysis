@@ -1925,7 +1925,7 @@ def get_distplot(registered_dataset, scalar, fontsize=2, legendfont=40, xlim=[0.
                      rug_kws={"alpha": .1, "color": colors[r]}, ax=ax).set(xlim=(float(xlim[0]), float(xlim[1])))
     try:
         plt.setp(ax.get_legend().get_texts(), fontsize=legendfont)
-    except:
+    except AttributeError:
         plt.setp(ax.legend(fontsize=legendfont))
     ax.set(xlabel=str(scalar), ylabel='Counts')
     return fig
