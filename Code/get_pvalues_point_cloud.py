@@ -350,6 +350,7 @@ def linear_comparison(outname, frame, canonical_geo, uvalue):
     print("Running tests took", end_time, "\n")
 
 
+
 def ttest_comparison(outname, frame, canonical_geo, resels, pvalue=0.05):
     """
     Function to do a number of pairwise two-tailed t-tests across a series out point clouds. Will write out a case file
@@ -413,8 +414,12 @@ def ttest_comparison(outname, frame, canonical_geo, resels, pvalue=0.05):
             #Get the variance across the set to see if the set and then use non-equal if the ratio
             # of the highest value and lowest exceeds 1.5 treat as unequal variance
             # Following from http: // vassarstats.net / textbook / ch14pt1.html
-            var1 = np.var(isolated_df.iloc[int(start_1):int(end_1), 2:].values)
-            var2 = np.var(isolated_df.iloc[int(start_2):int(end_2), 2:].values)
+            if type(isolated_df.iloc[0, 2:3][0]) == str:
+                var1 = np.var(isolated_df.iloc[int(start_1):int(end_1), 3:].values)
+                var2 = np.var(isolated_df.iloc[int(start_2):int(end_2), 3:].values)
+            else:
+                var1 = np.var(isolated_df.iloc[int(start_1):int(end_1), 2:].values)
+                var2 = np.var(isolated_df.iloc[int(start_2):int(end_2), 2:].values)
             variances = [var1, var2]
             variances.sort(reverse=True)
             variance_ratio = variances[0] / variances[1]
@@ -422,20 +427,28 @@ def ttest_comparison(outname, frame, canonical_geo, resels, pvalue=0.05):
 
             #Isolate the compared groups and put them in a new datafrane that will be written over on each loop.
             #This step performed a two-tailed t-test for each row of the dataframe.
-
-            if variance_ratio <= 1.5:
-                isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 2:],
-                                                                 isolated_df.iloc[int(start_2):int(end_2), 2:],
-                                                                 axis=0, equal_var=True)).T
+            if type(isolated_df.iloc[0, 2:3][0]) == str:
+                if variance_ratio <= 1.5:
+                    isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 3:],
+                                                                     isolated_df.iloc[int(start_2):int(end_2), 3:],
+                                                                     axis=0, equal_var=True)).T
+                else:
+                    isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 3:],
+                                                                     isolated_df.iloc[int(start_2):int(end_2), 3:],
+                                                                     axis=0, equal_var=False)).T
+            
             else:
-                isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 2:],
-                                                                 isolated_df.iloc[int(start_2):int(end_2), 2:],
-                                                                 axis=0, equal_var=False)).T
-
+                if variance_ratio <= 1.5:
+                    isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 2:],
+                                                                     isolated_df.iloc[int(start_2):int(end_2), 2:],
+                                                                     axis=0, equal_var=True)).T
+                else:
+                    isolated_df = pd.DataFrame(scipy.stats.ttest_ind(isolated_df.iloc[int(start_1):int(end_1), 2:],
+                                                                     isolated_df.iloc[int(start_2):int(end_2), 2:],
+                                                                     axis=0, equal_var=False)).T
             #Set the column names for the dataframe
             isolated_df.columns = ['T-score', 'p-value']
-            print(isolated_df)
-
+            
             #Create a new column in the dataframe for the absolute of the test statitic
             isolated_df['Absolute_T-score'] = abs(isolated_df['T-score'])
 
