@@ -1923,7 +1923,10 @@ def get_distplot(registered_dataset, scalar, fontsize=2, legendfont=40, xlim=[0.
         sns.distplot(registered_dataset[[str(group_list[r])]], hist=False, rug=True, label=str(group_list[r]),
                      kde_kws={"lw": 5, "alpha": 1, "color": colors[r]},
                      rug_kws={"alpha": .1, "color": colors[r]}, ax=ax).set(xlim=(float(xlim[0]), float(xlim[1])))
-    plt.setp(ax.get_legend().get_texts(), fontsize=legendfont)
+    try:
+        plt.setp(ax.get_legend().get_texts(), fontsize=legendfont)
+    except:
+        plt.setp(ax.legend(fontsize=legendfont))
     ax.set(xlabel=str(scalar), ylabel='Counts')
     return fig
 

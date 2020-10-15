@@ -21,7 +21,7 @@ from Code.PPCA_utils import _end_timer, _get_outDir, _vtk_print_mesh_info
 #                                                          #
 ############################################################
 #Define the directory where the files are
-directory = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_trabecular\results\stats\removed_gorilla_and_pongo")
+directory = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_cortical\results\stats\removed_gorilla_and_pongo")
 os.chdir(directory)
 
 bone = "radius"
@@ -71,16 +71,14 @@ get_ttest_results_for_scalars(point_cloud_dir=pathlib.Path.cwd(),
                               pvalue=0.05,
                               max_normalized=True)
 
-consolidate_case(inputMesh=f"CtTh_ttest_results_latrans_vs_lupus_Tscore.case",
+consolidate_case(inputMesh=f"CtTh_max_normalized_ttest_results_Anteaters_vs_KWapes_Tscore.case",
                  outName=f"{bone}_consolidated_CtTh_ttest",
-                 nameMatch=group_identifiers,
+                 nameMatch=group_list,
                  scalars=["CtTh"],
                  outputs=["_Tscore"],
-                 max_normazlied=False,
+                 max_normazlied=True,
                  pairwise=True)
 
-
-case_to_vtk(inputMesh=f"{bone}_consolidated_CtTh_ttest.case", outName=f"{bone}_consolidated_CtTh_ttest")
 ################################################
 # For trabecular bone or other 3d volume mesh  #
 ################################################

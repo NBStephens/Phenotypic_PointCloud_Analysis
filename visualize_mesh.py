@@ -21,7 +21,7 @@ sys.path.append(r"C:\Users\skk5802\Desktop\Phenotypic_PointCloud_Analysis")
 from Code.visual_utils import *
 from Code.pycpd_registrations_3D import consolidate_vtk, consolidate_case
 
-directory = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_trabecular\results\stats\removed_gorilla_and_pongo")
+directory = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_cortical\results\stats\removed_gorilla_and_pongo")
 os.chdir(directory)
 
 #Set the theme, default,  dark,
@@ -31,14 +31,14 @@ rename_dict = {"_stddev": "_standard_dev"}
 
 
 #Define the input name and read in to memory for visualization
-mesh_name = "new_mean_maps.vtk"
+mesh_name = "cortical_new_mean_maps.vtk"
 input_mesh = pv.read(mesh_name)
 
 #For getting the p-value thresholds in the same format.
-stats_dir = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_trabecular\results\stats\removed_gorilla_and_pongo")
+stats_dir = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_cortical\results\stats\removed_gorilla_and_pongo\CtTh")
 os.chdir(stats_dir)
-stats_mesh = pv.read("t_tests.vtk")
-
+stats_mesh = pv.read(glob.glob("*ttest.vtk")[0])
+stats_mesh.save(str(glob.glob("*ttest.vtk")[0]))
 
 #Output either a png or a pdf
 get_scalar_screens(input_mesh=input_mesh,
@@ -51,8 +51,10 @@ get_scalar_screens(input_mesh=input_mesh,
 #If one scalar is being used or the range shoudl be somehting different
 get_scalar_screens(input_mesh=input_mesh, scalars=["BVTV"], limits=[0.0, 0.60], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf", from_bayes=True)
 get_scalar_screens(input_mesh=input_mesh, scalars=["DA"], limits=[0.0, 0.50], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf")
-get_scalar_screens(input_mesh=input_mesh, scalars=["CtTh"], limits=[0.0, 2.50], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf")
+get_scalar_screens(input_mesh=input_mesh, scalars=["CtTh"], limits=False, consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf", from_bayes=True)
 
+
+stats_mesh = scalar_name_cleanup(input_mesh=stats_mesh, replace_dict=rename_dict)
 
 get_ttest_screens(input_mesh=stats_mesh,
                   scalars=["BVTV", "DA", "BSBV", "Tb_Sp", "Tb_Th"],
@@ -76,9 +78,9 @@ for array in input_mesh.point_arrays:
 
 
 #Gather all the pdfs into a single pdf
-merge_pdfs(pdf_directory=stats_dir, string_match="", out_name="Canid_femur_CtTh_results.pdf", output_directory="")
+merge_pdfs(pdf_directory=stats_dir, string_match="", out_name="radius_cortical_results.pdf", output_directory="")
 
-dist_plot_dir = r"D:\Desktop\Canids\Results\Distplots"
+dist_plot_dir = r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_cortical\results\stats\removed_gorilla_and_pongo\CtTh\Distplots"
 
 merge_pdfs(pdf_directory=dist_plot_dir, string_match="", out_name="Canid_distplot_results.pdf", output_directory=dist_plot_dir)
 

@@ -186,10 +186,10 @@ def _get_analytical_lists(scalar_list, scalar):
                                        remove_strings=["_standard_dev"],
                                        stringent=True,
                                        verbose=False)
-
+        #TODO fix the nesting in scalar_string for subset_scalar_string 
         std_list = subset_scalar_list(scalar_list=scalar_list,
                                       scalar=str(scalar),
-                                      scalar_string=["_standard_dev"],
+                                      scalar_string="_standard_dev",
                                       remove_strings=False,
                                       stringent=True,
                                       verbose=False)
