@@ -1,1 +1,1 @@
-conda env create --name=MARS --file=MARS_conda.yaml
+conda env create --name=MARS --file=PPCA_conda.yaml

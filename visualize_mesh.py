@@ -2,7 +2,6 @@
 
 
 
-
 '''
 import os
 import re
@@ -21,18 +20,22 @@ sys.path.append(r"C:\Users\skk5802\Desktop\Phenotypic_PointCloud_Analysis")
 from Code.visual_utils import *
 from Code.pycpd_registrations_3D import consolidate_vtk, consolidate_case
 
-directory = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_cortical\results\stats\removed_gorilla_and_pongo")
+directory = pathlib.Path(r"D:\Desktop\Carla\prenatal\results\stats")
 os.chdir(directory)
 
 #Set the theme, default,  dark,
 pv.set_plot_theme("default")
 
-rename_dict = {"_stddev": "_standard_dev"}
+rename_dict = {"__": "_"}
 
 
 #Define the input name and read in to memory for visualization
-mesh_name = "cortical_new_mean_maps.vtk"
+mesh_name = "talus_consolidated_means.vtk"
 input_mesh = pv.read(mesh_name)
+
+input_mesh = scalar_name_cleanup(input_mesh=input_mesh, replace_dict=rename_dict)
+inut_mesh.save(f"{mesh_name}")
+
 
 #For getting the p-value thresholds in the same format.
 stats_dir = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_cortical\results\stats\removed_gorilla_and_pongo\CtTh")
@@ -49,8 +52,8 @@ get_scalar_screens(input_mesh=input_mesh,
                    output_type="pdf")
 
 #If one scalar is being used or the range shoudl be somehting different
-get_scalar_screens(input_mesh=input_mesh, scalars=["BVTV"], limits=[0.0, 0.60], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf", from_bayes=True)
-get_scalar_screens(input_mesh=input_mesh, scalars=["DA"], limits=[0.0, 0.50], consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf")
+get_scalar_screens(input_mesh=input_mesh, scalars=["BVTV"], limits=[0.15, 0.25], consistent_limits=True, n_of_bar_txt_portions=6, output_type="png", from_bayes=True)
+get_scalar_screens(input_mesh=input_mesh, scalars=["DA"], limits=[0.10, 0.30], consistent_limits=True, n_of_bar_txt_portions=6, output_type="png")
 get_scalar_screens(input_mesh=input_mesh, scalars=["CtTh"], limits=False, consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf", from_bayes=True)
 
 
@@ -62,8 +65,8 @@ get_ttest_screens(input_mesh=stats_mesh,
                   n_of_bar_txt_portions=11,
                   output_type="pdf")
 
-get_ttest_screens(input_mesh=stats_mesh, scalars=["BVTV"], estimate_limits=True, output_type="png")
-get_ttest_screens(input_mesh=stats_mesh, scalars=["DA"], estimate_limits=True, output_type="png")
+get_ttest_screens(input_mesh=stats_mesh, scalars=["BVTV"], limits=[-6, 6], estimate_limits=False, output_type="png")
+get_ttest_screens(input_mesh=stats_mesh, scalars=["DA"], limits=[-6, 6], estimate_limits=False, output_type="png")
 get_ttest_screens(input_mesh=stats_mesh, scalars=["CtTh"], estimate_limits=True, n_of_bar_txt_portions=11, output_type="pdf")
 
 #Clean up old arrays

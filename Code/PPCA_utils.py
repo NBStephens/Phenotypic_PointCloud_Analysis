@@ -1,17 +1,19 @@
-import os
-import sys
 import pathlib
-import numpy as np
 from timeit import default_timer as timer
+
+import regex as re
+
 
 def _vtk_print_mesh_info(inputMesh):
     """
     Function to report basic information about a VTK mesh.
-    :param inputMesh:
+    :param inputMesh: Mesh file readable by pyvista
     :return:
     """
     if str(type(inputMesh)).split(".")[-1] == "vtkMultiBlockDataSet'>":
-        print(f"Mesh has {inputMesh.GetNumberOfBlocks()} blocks...\n Information from first block only...")
+        print(
+            f"Mesh has {inputMesh.GetNumberOfBlocks()} blocks...\n Information from first block only..."
+        )
         inputMesh = inputMesh.GetBlock(0)
     else:
         pass
@@ -20,7 +22,7 @@ def _vtk_print_mesh_info(inputMesh):
     cells = inputMesh.GetNumberOfCells()
     points = inputMesh.GetNumberOfPoints()
     cellType = inputMesh.GetMaxCellSize()
-    #components = mesh.GetNumberOfPieces()
+    # components = mesh.GetNumberOfPieces()
     if cellType == 3:
         meshType = "Triangular"
     elif cellType == 4:
@@ -63,6 +65,7 @@ def _get_outDir(outDir):
         outDir = pathlib.Path(str(outDir))
     return outDir
 
+
 def _get_inDir(inDir):
     """
     Simple function to wrap an input directory using pathlib.
@@ -74,6 +77,7 @@ def _get_inDir(inDir):
     else:
         inDir = pathlib.Path(str(inDir))
     return inDir
+
 
 def get_output_path(directory, append_name=""):
     """
@@ -114,15 +118,17 @@ def get_output_path(directory, append_name=""):
 
     # Since it's a boolean return, and True is the only other option we will simply print the output.
     else:
-        #This will print exactly what you tell it, including the space. The backslash n means new line.
+        # This will print exactly what you tell it, including the space. The backslash n means new line.
         print(f"\nOutput path:\n               {output_path}\n\n")
 
     # Returns the output_path
     return output_path
 
+
 def alpha_to_int(text):
     clean_text = int(text) if text.isdigit() else text
     return clean_text
+
 
 def alpha_to_float(text):
     try:
@@ -131,19 +137,24 @@ def alpha_to_float(text):
         retval = text
     return retval
 
+
 def natural_keys(text):
-    '''
+    """
     alist.sort(key=natural_keys) sorts in human order
     http://nedbatchelder.com/blog/200712/human_sorting.html
     (See Toothy's implementation in the comments)
-    '''
-    return [alpha_to_int(c) for c in re.split(r'(\d+)', text)]
+    """
+    return [alpha_to_int(c) for c in re.split(r"(\d+)", text)]
+
 
 def natural_keys_float(text):
-    '''
+    """
     alist.sort(key=natural_keys) sorts in human order
     http://nedbatchelder.com/blog/200712/human_sorting.html
     (See Toothy's implementation in the comments)
     float regex comes from https://stackoverflow.com/a/12643073/190597
-    '''
-    return [alpha_to_float(c) for c in re.split(r'[+-]?([0-9]+(?:[.][0-9]*)?|[.][0-9]+)', text)]
+    """
+    return [
+        alpha_to_float(c)
+        for c in re.split(r"[+-]?([0-9]+(?:[.][0-9]*)?|[.][0-9]+)", text)
+    ]

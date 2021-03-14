@@ -1,21 +1,12 @@
 import os
 import sys
 import glob
-import socket
 import pathlib
-import platform
+import shutil
 
-if platform.system() == "Windows":
-    if socket.gethostname() == 'L2ANTH-WT0023':
-        sys.path.append(r"Z:\RyanLab\Projects\NStephens\git_repo")
-    else:
-        sys.path.append(r"D:\Desktop\git_repo")
-if platform.system().lower() == 'linux':
-    if 'redhat' in platform.platform():
-        sys.path.append(r"/gpfs/group/LiberalArts/default/tmr21_collab/RyanLab/Projects/NStephens/git_repo")
-    else:
-        sys.path.append(r"/mnt/ics/RyanLab/Projects/NStephens/git_repo")
+import tempfile
 
+sys.path.append(r"D:\Desktop\git_repo")
 from MARS.morphology.Mesh_2d_to_3d import *
 
 ###################################
@@ -28,7 +19,7 @@ from MARS.morphology.Mesh_2d_to_3d import *
 temp = pathlib.Path(tempfile.gettempdir())
 
 # Define the directory where the ply/off file is
-directory = pathlib.Path(r"D:\Desktop\For_Jaap")
+directory = pathlib.Path(r"Z:\Nick_work\Carla\carla_point_clouds\analysis3")
 
 # This is where tetwild is located, which is platform specific (i.e. Linux or Windows or cluster)
 tetwildpath = pathlib.Path(r"D:\Desktop\git_repo\MARS\TetWild")
@@ -36,7 +27,7 @@ tetwildpath = pathlib.Path(r"D:\Desktop\git_repo\MARS\TetWild")
 # Change to the directory
 os.chdir(directory)
 
-#Define the bone, which will become part of the name
+# Define the bone, which will become part of the name
 bone = "Talus"
 
 ##########################################################################
@@ -45,7 +36,7 @@ bone = "Talus"
 #                                                                        #
 ##########################################################################
 
-input_name = glob.glob("*Trabecular_meshROI*.ply")
+input_name = glob.glob("*resampled_canonical_analysis3*.ply")
 
 ply_to_inp(inMesh=input_name[0], outName=f"canonical_{bone}", outDir=directory)
 
@@ -79,23 +70,24 @@ input_name.sort()
 input_name = input_name[0]
 print(input_name)
 
-#This uses shutil to copy the input ply and place it in the local temp folder so tetwild can voxelize it.
+# This uses shutil to copy the input ply and place it in the local temp folder so tetwild can voxelize it.
 dest = shutil.copy(input_name, temp)
 
 # Use tetwild to voxelize the 2d mesh. If you are doing this in Spyder you won't see much going on, because it outputs
 # to the terminal.
-TetWild_2d_to_3d(input_path=str(pathlib.Path(temp)),
-                 in_file=input_name,
-                 output_path=str(pathlib.Path(temp)),
-                 tetwildpath=str(tetwildpath),
-                 out_name="",
-                 edge_length="",
-                 #target_verts=3000, #You can set the target number of vertices, but it doesn't adjust the surface cells.
-                 laplacian=True)
+TetWild_2d_to_3d(
+    input_path=str(pathlib.Path(temp)),
+    in_file=input_name,
+    output_path=str(pathlib.Path(temp)),
+    tetwildpath=str(tetwildpath),
+    out_name="",
+    edge_length="",
+    # target_verts=3000, #You can set the target number of vertices, but it doesn't adjust the surface cells.
+    laplacian=True,
+)
 
 
-
-#The -3 removes the last three characters in a string, which allows us to place an inp at the end.
+# The -3 removes the last three characters in a string, which allows us to place an inp at the end.
 out_file = str(input_name[:-3]) + "inp"
 out_file = pathlib.Path(temp).joinpath(out_file)
 
@@ -103,3 +95,14 @@ out_file = pathlib.Path(temp).joinpath(out_file)
 dest = shutil.copy(out_file, directory)
 
 inp_to_case(out_file, f"canonical_{bone}")
+
+import pyvista as pv
+
+case_list = glob.glob("*.case")
+for case in case_list[:]:
+    out_name = f"{case.rpartition('.')[0]}.vtk"
+    print(out_name)
+    mesh = pv.read(case)
+    mesh = mesh.pop(0)
+    mesh = mesh.cell_data_to_point_data()
+    mesh.save(out_name)
