@@ -7,9 +7,10 @@ import platform
 import pandas as pd
 import pyvista as pv
 
-script_dir = pathlib.Path(r"C:\Users\skk5802\Desktop\Phenotypic_PointCloud_Analysis")
+# script_dir = pathlib.Path(r"C:\Users\skk5802\Desktop\Phenotypic_PointCloud_Analysis")
+sys.path.append(r"D:\git_pulls\Phenotypic_PointCloud_Analysis")
 # script_dir = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(str(script_dir))
+# sys.path.append(str(script_dir))
 from Code.pycpd_registrations_3D import *
 from Code.get_pvalues_point_cloud import *
 from Code.PPCA_utils import _end_timer, _get_outDir, _vtk_print_mesh_info
@@ -21,48 +22,62 @@ from Code.PPCA_utils import _end_timer, _get_outDir, _vtk_print_mesh_info
 #                                                          #
 ############################################################
 # Define the directory where the files are
-directory = pathlib.Path(
-    r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_cortical\results\stats\removed_gorilla_and_pongo"
-)
+directory = pathlib.Path(r"D:\Desktop\Carla\paper_3_final")
 os.chdir(directory)
 
-bone = "radius"
+bone = "talus"
 
 # Define the group names for subsetting
-group_list = ["KWapes", "Anteaters", "OWM", "nonKWapes"]
+group_list = ["D", "E", "F"]
 
 # Define the identifying text for each of the members of the group
-group1_list = ["51202", "51393", "51377", "201588", "51379", "54091"]
-group2_list = ["23437", "262655", "61795", "211662", "23436", "100068", "133490"]
-group3_list = [
-    "82096",
-    "Papio_ursinusPapioursinus",
-    "80774",
-    "82097",
-    "43086",
-    "28256",
-    "34712",
-    "52206",
-    "52223",
-    "34714",
-    "169430",
-    "89365",
+group1_list = [
+    "BeliManastir_G20",
+    "BO_1_M",
+    "BO_11_F",
+    "BO_4_F",
+    "BO_5_F",
+    "BO_6_F",
+    "Ilok_G72",
+    "Ilok_G70",
+    "NF_821012",
+    "Paks_1164",
+    "Paks_1166",
+    "Paks_1846",
+    "Paks_997",
+    "PARMA_7_F",
+    "PerkataNyuli_4263",
+    "Velia_T209",
+    "Velia_T342",
+    "Velia_T375",
+    "Velia_T390",
 ]
-group4_list = [
-    "NF821349",
-    "NF821350",
-    "NF821282",
-    "NF821211",
-    "200898",
-    "NF819955",
-    "NF819953",
-    "NF819951",
-    "NF820715",
+group2_list = [
+    "BeliManastir_G31",
+    "BO_40_M",
+    "BO_6_M",
+    "Paks_1865",
+    "PerkataNyuli_1575",
+    "PerkataNyuli_2123",
+    "PerkataNyuli_435",
+    "PerkataNyuli_752",
+    "Velia_T138",
+    "Velia_T320",
+    "Velia_T333",
+]
+group3_list = [
+    "BeliManastir_G4",
+    "BO_39_M",
+    "Paks_1156",
+    "PARMA_10_F",
+    "PerkataNyuli_116",
+    "PerkataNyuli_734",
+    "BO_81_M",
+    "Velia_T365",
 ]
 
 # Create a list of lists for the identifiers
-group_identifiers = [group1_list, group2_list, group3_list, group4_list]
-
+group_identifiers = [group1_list, group2_list, group3_list]
 ################################################
 # Shouldn't need to modify anything below here #
 ################################################
@@ -147,8 +162,7 @@ get_data_files_for_vtk_scalars(
     max_normalixed=True,
 )
 
-
 results_vtk = ttest_comparison_vtk(
     canonical_vtk=canonical_vtk, resels=resels, point_cloud_dir=directory, pvalue=0.05
 )
-results_vtk.save("t_tests.vtk")
+results_vtk.save("talus_t_tests_analysis_3.vtk")

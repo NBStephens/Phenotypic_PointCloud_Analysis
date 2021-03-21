@@ -1,8 +1,8 @@
-'''
+"""
 
 
 
-'''
+"""
 import os
 import re
 import sys
@@ -16,59 +16,131 @@ from matplotlib.colors import rgb2hex
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from scipy.spatial.transform import Rotation as R
 from matplotlib.colors import LinearSegmentedColormap
-sys.path.append(r"C:\Users\skk5802\Desktop\Phenotypic_PointCloud_Analysis")
+
+sys.path.append(r"D:\git_pulls\Phenotypic_PointCloud_Analysis")
+
+# script_dir = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
 from Code.visual_utils import *
 from Code.pycpd_registrations_3D import consolidate_vtk, consolidate_case
 
-directory = pathlib.Path(r"D:\Desktop\Carla\prenatal\results\stats")
+directory = pathlib.Path(r"D:\Desktop\Carla\paper_3_final\results")
 os.chdir(directory)
 
-#Set the theme, default,  dark,
+# Set the theme, default,  dark,
 pv.set_plot_theme("default")
 
 rename_dict = {"__": "_"}
 
-
-#Define the input name and read in to memory for visualization
-mesh_name = "talus_consolidated_means.vtk"
+# Define the input name and read in to memory for visualization
+mesh_name = "consolidated_means.vtk"
 input_mesh = pv.read(mesh_name)
 
+# This expects variable names to follow a convention.
+rename_dict = {"_std": "_standard_dev", "__": "_", "_coef": "_coef_var"}
 input_mesh = scalar_name_cleanup(input_mesh=input_mesh, replace_dict=rename_dict)
-inut_mesh.save(f"{mesh_name}")
+input_mesh.save(f"{mesh_name}")
 
 
-#For getting the p-value thresholds in the same format.
-stats_dir = pathlib.Path(r"Z:\RyanLab\Projects\SKuo\Medtool\medtool_training\new_point_cloud_cortical\results\stats\removed_gorilla_and_pongo\CtTh")
+max_norm_list = [item for item in list(input_mesh.point_arrays) if "max_norm" in item]
+input_mesh = remove_array(input_mesh=input_mesh, remove_arrays=max_norm_list)
+
+
+# Output either a png or a pdf
+get_scalar_screens(
+    input_mesh=input_mesh,
+    scalars=["BVTV", "DA"],
+    limits=[0.0, 0.35],
+    consistent_limits=True,
+    n_of_bar_txt_portions=6,
+    output_type="pdf",
+    from_bayes=False,
+    scale_without_max_norm=True,
+)
+
+# If one scalar is being used or the range shoudl be somehting different
+get_scalar_screens(
+    input_mesh=input_mesh,
+    scalars=["BVTV"],
+    limits=[0.0, 0.35],
+    consistent_limits=True,
+    n_of_bar_txt_portions=6,
+    output_type="png",
+    from_bayes=False,
+    scale_without_max_norm=True,
+)
+
+
+get_scalar_screens(
+    input_mesh=input_mesh,
+    scalars=["DA"],
+    limits=[0.0, 0.45],
+    consistent_limits=True,
+    n_of_bar_txt_portions=6,
+    output_type="png",
+    from_bayes=False,
+    scale_without_max_norm=True,
+)
+
+get_scalar_screens(
+    input_mesh=input_mesh,
+    scalars=["CtTh"],
+    limits=False,
+    consistent_limits=True,
+    n_of_bar_txt_portions=6,
+    output_type="pdf",
+    from_bayes=True,
+)
+
+# For getting the p-value thresholds in the same format.
+stats_dir = directory.joinpath("stats")
 os.chdir(stats_dir)
-stats_mesh = pv.read(glob.glob("*ttest.vtk")[0])
-stats_mesh.save(str(glob.glob("*ttest.vtk")[0]))
-
-#Output either a png or a pdf
-get_scalar_screens(input_mesh=input_mesh,
-                   scalars=["BVTV", "DA"],
-                   limits=[0.0, 0.50],
-                   consistent_limits=True,
-                   n_of_bar_txt_portions=6,
-                   output_type="pdf")
-
-#If one scalar is being used or the range shoudl be somehting different
-get_scalar_screens(input_mesh=input_mesh, scalars=["BVTV"], limits=[0.15, 0.25], consistent_limits=True, n_of_bar_txt_portions=6, output_type="png", from_bayes=True)
-get_scalar_screens(input_mesh=input_mesh, scalars=["DA"], limits=[0.10, 0.30], consistent_limits=True, n_of_bar_txt_portions=6, output_type="png")
-get_scalar_screens(input_mesh=input_mesh, scalars=["CtTh"], limits=False, consistent_limits=True, n_of_bar_txt_portions=6, output_type="pdf", from_bayes=True)
-
+stats_mesh = pv.read(stats_dir.joinpath("talus_t_tests_analysis_3.vtk"))
+max_norm_list = [item for item in list(stats_mesh.point_arrays) if "max_norm" in item]
+stats_mesh = remove_array(input_mesh=stats_mesh, remove_arrays=max_norm_list)
 
 stats_mesh = scalar_name_cleanup(input_mesh=stats_mesh, replace_dict=rename_dict)
 
-get_ttest_screens(input_mesh=stats_mesh,
-                  scalars=["BVTV", "DA", "BSBV", "Tb_Sp", "Tb_Th"],
-                  estimate_limits=True,
-                  n_of_bar_txt_portions=11,
-                  output_type="pdf")
+get_ttest_screens(
+    input_mesh=stats_mesh,
+    scalars=["BVTV", "DA"],  # , "BSBV", "Tb_Sp", "Tb_Th"],
+    limits=[-5.0, 5.0],
+    estimate_limits=False,
+    n_of_bar_txt_portions=11,
+    output_type="pdf",
+)
 
-get_ttest_screens(input_mesh=stats_mesh, scalars=["BVTV"], limits=[-6, 6], estimate_limits=False, output_type="png")
-get_ttest_screens(input_mesh=stats_mesh, scalars=["DA"], limits=[-6, 6], estimate_limits=False, output_type="png")
-get_ttest_screens(input_mesh=stats_mesh, scalars=["CtTh"], estimate_limits=True, n_of_bar_txt_portions=11, output_type="pdf")
+get_ttest_screens(
+    input_mesh=stats_mesh,
+    scalars=["BVTV", "DA"],  # , "BSBV", "Tb_Sp", "Tb_Th"],
+    limits=[-100.0, 100.0],
+    estimate_limits=False,
+    n_of_bar_txt_portions=11,
+    output_type="png",
+)
 
+get_ttest_screens(
+    input_mesh=stats_mesh,
+    scalars=["BVTV"],
+    limits=[-6, 6],
+    estimate_limits=False,
+    output_type="png",
+)
+get_ttest_screens(
+    input_mesh=stats_mesh,
+    scalars=["DA"],
+    limits=[-6, 6],
+    estimate_limits=False,
+    output_type="png",
+)
+get_ttest_screens(
+    input_mesh=stats_mesh,
+    scalars=["CtTh"],
+    estimate_limits=True,
+    n_of_bar_txt_portions=11,
+    output_type="pdf",
+)
+
+"""
 #Clean up old arrays
 for array in input_mesh.point_arrays:
     print(array)
@@ -110,7 +182,7 @@ rename_dict = {"_nonKWapes": "_Homo_sapiens", "_KWapes": "_Pan_troglodytes", "_O
                "max_normalized_CtTh_": "CtTh_max_normalized_", "CtTh_max_normalized_All_groups_mean": "CtTh_All_groups",
                "_std_": "_standard_dev_", "_standrd_dev_": "_standard_dev_"}
 
-rename_dict = {"_std_": "_standard_dev_", "__": "_"}
+rename_dict = {"_std": "_standard_dev", "__": "_", "_coef": "_coef_var"}
 rename_dict = {"CtTh_All_groups": "CtTh_max_normalized_All_groups", "__": "_"}
 input_mesh = scalar_name_cleanup(input_mesh=input_mesh, replace_dict=rename_dict)
 input_mesh = scalar_name_suffix(input_mesh=input_mesh, suffix="_posterior_HDI_range")
@@ -210,3 +282,4 @@ merge_pdfs(pdf_directory=directory, string_match="CtTh", out_name="Radius_cortic
 #For Rita
 
 consolidate_case(inputMesh=, outName, nameMatch, scalars=["BVTV", "DA"], outputs=["_original_average.case", "_original_coef_var.case", "_original_standard_dev.case"], max_normazlied=True, pairwise=False)
+"""

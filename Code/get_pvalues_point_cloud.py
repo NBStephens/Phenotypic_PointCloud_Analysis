@@ -110,7 +110,7 @@ def get_resels_2d(point_cloud_model, mesh):
     compute how many FWHM sized blocsk are needed to cover the entire area of the points.
     """
 
-    mesh = trimesh.load(str(mesh))
+    mesh = pv.load(str(mesh))
     surface_area = mesh.area
     FWHM = get_fwhm(point_cloud_model)
     point_cloud_resels = float(surface_area) / float(FWHM ** 2)
@@ -131,7 +131,7 @@ def get_resels_3d(point_cloud_model, mesh):  # , point_distance, ct_average_reso
     :param average_resolution:
     :return:
     """
-    mesh = trimesh.load(str(mesh))
+    mesh = pv.read(str(mesh))
     volume = mesh.volume
     FWHM = get_fwhm(point_cloud_model)
     point_cloud_resels = float(volume) / float(FWHM ** 3)

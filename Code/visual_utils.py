@@ -54,7 +54,7 @@ def _get_min_max(input_mesh, scalar_list):
     current_list = scalar_list
     array_min_max = []
     for points in current_list:
-        current_array = np.array(input_mesh.get_data_range(arr=str(points)))
+        current_array = np.array(input_mesh.get_data_range(arr_var=str(points)))
         try:
             current_array_min = float(
                 current_array[(current_array < 100) & (current_array > -100)].min()
@@ -485,18 +485,16 @@ def generate_plot(
     if output_type in output_choices:
         plotter.save_graphic(filename=f"{screen_shot}.{output_type}")
     else:
-        plotter.show(
-            interactive=False, use_panel=False, screenshot=f"{screen_shot}.png"
-        )
+        plotter.show(interactive=False, screenshot=f"{screen_shot}.png")
 
 
 def get_ttest_screens(
     input_mesh,
-    scalars=["BVTV", "DA"],
-    limits=[],
-    estimate_limits=True,
-    n_of_bar_txt_portions=11,
-    output_type="png",
+    scalars: list = ["BVTV", "DA"],
+    limits: list = [],
+    estimate_limits: bool = True,
+    n_of_bar_txt_portions: int = 11,
+    output_type: str = "png",
 ):
     stats_mesh = input_mesh
     scalar_color_dict_10 = _generate_color_dict(n_bins=10)
@@ -589,13 +587,13 @@ def get_bayes_thresh_screens(
 
 def generate_stats_plot(
     input_mesh,
-    scalar,
+    scalar: str,
     scalar_value,
     scalar_type,
-    limits=[-1.0, 1.0],
-    n_of_bar_txt_portions=11,
+    limits: list = [-1.0, 1.0],
+    n_of_bar_txt_portions: int = 11,
     colormap="hot",
-    output_type="png",
+    output_type: str = "png",
 ):
     output_choices = ["svg", "eps", "ps", "pdf", "tex"]
     scalar = scalar
@@ -616,25 +614,9 @@ def generate_stats_plot(
     limits = limits
     stats_mesh = input_mesh
     print(scalar_name)
-    if pv.__version__ == "0.24.2":
-        threshed = stats_mesh.threshold(
-            value=(-100, 100),
-            scalars=f"{scalar_name}",
-            invert=False,
-            continuous=False,
-            preference="point",
-        )
-
-    else:
-        threshed = stats_mesh.threshold(
-            value=(-100, 100),
-            scalars=f"{scalar_name}",
-            invert=False,
-            continuous=False,
-            preference="point",
-            all_scalars=True,
-        )
-
+    threshed = stats_mesh.threshold(
+        value=(-100.0, 100.0), scalars=f"{scalar_name}", preference="points"
+    )
     vel_dargs = dict(
         scalars=f"{scalar_name}",
         clim=limits,
@@ -745,9 +727,7 @@ def generate_stats_plot(
     if output_type in output_choices:
         plotter.save_graphic(filename=f"{screen_shot}.{output_type}")
     else:
-        plotter.show(
-            interactive=False, use_panel=False, screenshot=f"{screen_shot}.png"
-        )
+        plotter.show(interactive=False, screenshot=f"{screen_shot}.png")
 
 
 def alpha_to_int(text):

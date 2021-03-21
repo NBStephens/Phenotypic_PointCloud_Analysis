@@ -95,7 +95,7 @@ group1_list = [
     "Paks_1846",
     "Paks_997",
     "PARMA_7_F",
-    "Perkata_4263",
+    "PerkataNyuli_4263",
     "Velia_T209",
     "Velia_T342",
     "Velia_T375",
@@ -105,11 +105,11 @@ group2_list = [
     "BeliManastir_G31",
     "BO_40_M",
     "BO_6_M",
-    "PAks_1865",
-    "Perkata_1575",
-    "Perkata_2123",
-    "Perkata_435",
-    "Perkata_752",
+    "Paks_1865",
+    "PerkataNyuli_1575",
+    "PerkataNyuli_2123",
+    "PerkataNyuli_435",
+    "PerkataNyuli_752",
     "Velia_T138",
     "Velia_T320",
     "Velia_T333",
@@ -201,7 +201,7 @@ batch_mapping(
 )
 
 gather_scalars(
-    point_cloud_dir=directory, canonical_vtk=canonical_vtk, max_normalized=True
+    point_cloud_dir=directory, canonical_vtk=canonical_vtk, max_normalized=False
 )
 
 visualize_registration_movement(
@@ -211,7 +211,7 @@ visualize_registration_movement(
 vtp_visualize_deformation(
     point_cloud_dir=directory,
     canonical_pc=canonical_point_cloud,
-    outName="canonical_BO_talus",
+    outName="canonical_talus_analysis_3",
 )
 
 get_mean_vtk_groups(
@@ -221,4 +221,11 @@ get_mean_vtk_groups(
     canonical_vtk=canonical_vtk,
     point_cloud_dir=directory,
     max_normalized=True,
+)
+results_dir = directory.joinpath("results")
+os.chdir(results_dir)
+gather_multiscalar_vtk(
+    input_mesh="canonical_talus_analysis_3_mean.vtk",
+    out_name="consolidated_means.vtk",
+    name_match=None,
 )

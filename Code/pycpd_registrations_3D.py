@@ -20,6 +20,8 @@ Author: Nick Stephens, Date: August, 2018
 # Print it out so we can see the progress
 import os
 import sys
+from typing import Union
+
 import vtk
 import time
 import glob
@@ -2172,12 +2174,12 @@ def visualize_registration_movement(point_cloud_dir, canonical_pc):
 
 
 def get_mean_vtk_groups(
-    group_list,
-    group_identifiers,
-    bone,
-    canonical_vtk,
-    point_cloud_dir,
-    max_normalized=True,
+    group_list: list,
+    group_identifiers: list,
+    bone: str,
+    canonical_vtk: Union[str, pathlib.Path],
+    point_cloud_dir: Union[str, pathlib.Path],
+    max_normalized: bool = True,
 ):
 
     mapping_dir = pathlib.Path(point_cloud_dir).joinpath("mapping")
@@ -2227,6 +2229,11 @@ def get_mean_vtk_groups(
             print(f"\n{key} list contains {len(group_scalars)} individuals...")
             outname = results_dir.joinpath(f"Mean_{key}_{bone}")
             scalar_list = pd.read_csv(group_scalars[0]).iloc[:, 3:]
+            # Scalars are expected to be at name, following an
+            scalar_list = [
+                item.rpartition("_")[-1] for item in list(scalar_list.columns)
+            ]
+            scalar_list = list(set(scalar_list))
             if max_normalized == True:
                 mesh, max_mesh = map_canonical_vtk(
                     scalar_list=scalar_list,
@@ -2439,10 +2446,10 @@ def consolidate_case(
 
 
 def consolidate_vtk(
-    input_mesh,
-    out_name,
-    name_match,
-    bayes_match=False,
+    input_mesh: str,
+    out_name: str,
+    name_match: Union[str, None],
+    bayes_match: bool = False,
     scalars=["BVTV", "DA", "BSBV", "Tb_Sp", "Tb_Th"],
     pairwise=False,
 ):
@@ -2462,7 +2469,7 @@ def consolidate_vtk(
         ]
     else:
         consolidate_scalars = [f"{name_match}{scalar}" for scalar in scalars]
-    consolidate_scalars
+
     for consolidate in consolidate_scalars:
         print(f"\n Consolidating {consolidate}")
         temp_mesh = pv.read(consolidate)
@@ -2484,6 +2491,52 @@ def consolidate_vtk(
             new_array_name = f"{new_array_name}_{name_match}"
             if new_array_name[0] == "_":
                 new_array_name = f"{new_array_name[1:]}"
+            print(f"              {new_array_name}")
+            temp_array = temp_mesh[temp_array_name]
+            vtk_mesh[str(new_array_name)] = temp_array
+    out_name = out_name.replace(".vtk", "")
+    out_name = out_name.replace("__", "_")
+    vtk_mesh.save(f"{out_name}.vtk")
+
+
+def gather_multiscalar_vtk(
+    input_mesh: str,
+    out_name: str,
+    name_match: Union[str, None],
+):
+    vtk_mesh = pv.read(input_mesh)
+    vtk_mesh.clear_arrays()
+    consolidate_vtks = glob.glob("*.vtk")
+    if not name_match == None:
+        consolidate_vtks = [
+            item for item in consolidate_vtks if f"{name_match}" in consolidate_vtks
+        ]
+
+    for consolidate in consolidate_vtks:
+        print(f"\n Consolidating {consolidate}")
+        temp_mesh = pv.read(consolidate)
+        array_names = list(temp_mesh.point_arrays)
+        for temp_array_name in array_names:
+            # The consequences of building this without a proper road map
+            new_array_name = temp_array_name.replace("ESca1", "")
+            new_array_name = new_array_name.replace("_original_", "_")
+            new_array_name = new_array_name.replace("_smooth_", "_")
+            new_array_name = new_array_name.replace("BVTV", "BVTV_mean_")
+            new_array_name = new_array_name.replace("DA", "DA_mean_")
+            new_array_name = new_array_name.replace("_mean_mean_", "_mean_")
+            new_array_name = new_array_name.replace(
+                "_max_normalized_mean_", "_max_normalized_"
+            )
+            new_array_name = new_array_name.replace("_max_normalized_", "_max_norm_")
+            new_array_name = new_array_name.replace("_std_", "_standard_dev_")
+            new_array_name = new_array_name.replace("DA_val01_", "DA_")
+            new_array_name = new_array_name.replace("__", "_")
+            new_array_name = f"{new_array_name}"
+            if new_array_name[0] == "_":
+                new_array_name = f"{new_array_name[1:]}"
+            if new_array_name[-1] == "_":
+                new_array_name = f"{new_array_name[:-1]}"
+
             print(f"              {new_array_name}")
             temp_array = temp_mesh[temp_array_name]
             vtk_mesh[str(new_array_name)] = temp_array
