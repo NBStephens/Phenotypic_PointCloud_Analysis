@@ -78,6 +78,7 @@ def inp_to_case(in_name, outname):
         tetwild_xyz = "*NODE"
         # start_elements = "******* E L E M E N T S *************"
         start_elements = "*Element"
+        tetwild_elements = "*ELEMENT"
         start_element_sets = "*ELSET"
         for num, line in enumerate(f, 1):
             if start_xyz in line:
@@ -93,10 +94,17 @@ def inp_to_case(in_name, outname):
                 print("Elements start at line:", num)
                 print(line)
                 elements = num
+            if tetwild_elements in line:
+                print("Elements start at line:", num)
+                print(line)
+                elements = num
+
             if start_element_sets in line:
                 print("Element sets start at line:", num)
                 print(line)
                 sets = num
+            else:
+                sets = False
         f.close()
 
     # Use the line values to define the skip rows list for pandas
@@ -109,19 +117,17 @@ def inp_to_case(in_name, outname):
 
     # Start of file until the end of the elements.
     range_3 = list(range(int(0), int(elements)))
-
-    # Start of the element set until the end of the file.
-    try:
+    if sets:
         range_4 = list(range(int(sets - 1), int(size)))
         set_range = list(range(int(0), int(sets)))
-    except:
-        range_4 = list(range(int(size) - 1, int(size)))
         print("No element sets found.")
-
+        element_range = range_3 + range_4
+    else:
+        range_4 = list(range(int(0), int(size)))
+        print(f"{len(range_4)} tetrahedrons in file")
+        element_range = range_3
     # Create a list with the individual range lists
     xyz_range = range_1 + range_2
-
-    element_range = range_3 + range_4
 
     # Read in individual dataframes for the portions. It isn't efficient, but it is readable.
     xyz_df = pd.read_csv(in_name, header=None, sep=",", skiprows=xyz_range)
