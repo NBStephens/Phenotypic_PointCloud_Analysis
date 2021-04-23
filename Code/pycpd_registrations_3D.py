@@ -43,6 +43,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from vtk.util import numpy_support as npsup
 from scipy.interpolate import griddata
 from timeit import default_timer as timer
+from typing import Union
 
 script_dir = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(str(script_dir.parent))
@@ -1441,6 +1442,27 @@ def get_initial_aligned_dict(auto3dgm_dir, csv_list=False):
             "There number of rotation matrices is not equal to the number of meshes\nThis will end in tears..."
         )
     return rotation_dict, vtk_list
+
+
+def get_rotation_dict(
+    histomorph_vtk_dir: Union[str, pathlib.Path], csv_list: list = False
+) -> dict:
+    histomorph_vtk_dir = pathlib.Path(histomorph_vtk_dir)
+    print(f"Getting matching dictionary from rotation matrices...\n")
+    # Find the rotation matrix and then reverse name match for the initial rigid
+    rotated_names = [item.name for item in histomorph_vtk_dir.glob("*.vtk") if "canonical" not in item.name]
+    
+    print(f"Found {len(rotated_names)} matrices in histomorph vtk folder....\n")
+
+    # This is ugly and I hate it, but it works.
+    # TODO this will be whatever we call the low res stuff
+    rotation_values = []
+
+    rotation_dict = dict(zip(rotated_names, rotation_values))
+
+    return rotation_dict, rotated_names
+
+
 
 
 def setup_point_cloud_folder_struct(point_cloud_folder):
