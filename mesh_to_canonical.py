@@ -3,11 +3,13 @@ import sys
 import glob
 import pathlib
 import shutil
-
 import tempfile
+import pyvista as pv
 
-sys.path.append(r"D:\Desktop\git_repo")
-from MARS.morphology.Mesh_2d_to_3d import *
+sys.path.append(r"C:\Users\skk5802\Desktop\Phenotypic_PointCloud_Analysis")
+from Code.PPCA_utils import *
+from Code.pycpd_registrations_3D import *
+from Code.Mesh_2d_to_3d import *
 
 ###################################
 #                                 #
@@ -19,16 +21,20 @@ from MARS.morphology.Mesh_2d_to_3d import *
 temp = pathlib.Path(tempfile.gettempdir())
 
 # Define the directory where the ply/off file is
-directory = pathlib.Path(r"Z:\Nick_work\Carla\carla_point_clouds\analysis3")
+directory = pathlib.Path(
+    r"Z:\RyanLab\Projects\vZubritzky\Asymmetry\Medtool\point_clouds"
+)
 
 # This is where tetwild is located, which is platform specific (i.e. Linux or Windows or cluster)
-tetwildpath = pathlib.Path(r"D:\Desktop\git_repo\MARS\TetWild")
+tetwildpath = pathlib.Path(
+    r"C:\Users\skk5802\Desktop\Phenotypic_PointCloud_Analysis\TetWild"
+)
 
 # Change to the directory
 os.chdir(directory)
 
 # Define the bone, which will become part of the name
-bone = "Talus"
+bone = "Calcaneus"
 
 ##########################################################################
 #                                                                        #
@@ -36,7 +42,7 @@ bone = "Talus"
 #                                                                        #
 ##########################################################################
 
-input_name = glob.glob("*resampled_canonical_analysis3*.ply")
+input_name = glob.glob("*canonical.ply")
 
 ply_to_inp(inMesh=input_name[0], outName=f"canonical_{bone}", outDir=directory)
 
@@ -96,13 +102,17 @@ dest = shutil.copy(out_file, directory)
 
 inp_to_case(out_file, f"canonical_{bone}")
 
-import pyvista as pv
 
 case_list = glob.glob("*.case")
-for case in case_list[:]:
-    out_name = f"{case.rpartition('.')[0]}.vtk"
-    print(out_name)
-    mesh = pv.read(case)
-    mesh = mesh.pop(0)
-    mesh = mesh.cell_data_to_point_data()
-    mesh.save(out_name)
+if case_list:
+    if len(case_list) > 1:
+        print("You've got more than one case file in here!")
+        print("Delete the others and run it again!!!!")
+    else:
+        case = case_list[0]
+        out_name = f"{case.rpartition('.')[0]}.vtk"
+        print(out_name)
+        mesh = pv.read(case)
+        mesh = mesh.pop(0)
+        mesh = mesh.cell_data_to_point_data()
+        mesh.save(out_name)
