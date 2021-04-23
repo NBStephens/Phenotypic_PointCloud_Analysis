@@ -1,4 +1,4 @@
-'''
+"""
 Script to take a 2d ply/off and convert it into a 3d volume mesh. It is recommened that the mesh be viewed and fixed
 (e.g. remove floating vertices, creases, etc.) in meshlab prior to conversion.
 
@@ -9,7 +9,7 @@ pip install gmsh-sdk
 Author: Nicholas Stephens (nbs49@psu.edu)
 Date: 06/21/2019
 
-'''
+"""
 
 import os
 import sys
@@ -27,6 +27,7 @@ import pandas as pd
 import pyvista as pv
 from time import sleep
 from timeit import default_timer as timer
+
 
 def mesh_info(mesh):
     """
@@ -47,9 +48,14 @@ def mesh_info(mesh):
         else:
             print("Mesh doesn't have holes, please check for other issues in Meshlab.")
     print("Mesh has {} faces and {} vertices.".format(triangles, points))
-    print("Mesh edge length: \n           mean {:06.4f}, max {:06.4f}, min {:06.4f}".format(edgemean, edgemax, edgemin))
+    print(
+        "Mesh edge length: \n           mean {:06.4f}, max {:06.4f}, min {:06.4f}".format(
+            edgemean, edgemax, edgemin
+        )
+    )
 
-#Function to read in an inp and output a case
+
+# Function to read in an inp and output a case
 def inp_to_case(in_name, outname):
     """
     Function to read in an ascii inp file and output a point cloud, for cloud compare, and a case file,
@@ -67,22 +73,28 @@ def inp_to_case(in_name, outname):
         print("Lines in inp file:", size)
     with open(in_name, "rt") as f:
         # Get the number of lines in the file
-        #start_xyz = "*NODE"
+        # start_xyz = "*NODE"
         start_xyz = "*Node"
-        #start_elements = "******* E L E M E N T S *************"
+        tetwild_xyz = "*NODE"
+        # start_elements = "******* E L E M E N T S *************"
         start_elements = "*Element"
         start_element_sets = "*ELSET"
         for num, line in enumerate(f, 1):
             if start_xyz in line:
-                print('Node set starts at line:', num)
+                print("Node set starts at line:", num)
                 print(line)
                 xyz = num
+            if tetwild_xyz in line:
+                print("Node set starts at line:", num)
+                print(line)
+                xyz = num
+
             if start_elements in line:
-                print('Elements start at line:', num)
+                print("Elements start at line:", num)
                 print(line)
                 elements = num
             if start_element_sets in line:
-                print('Element sets start at line:', num)
+                print("Element sets start at line:", num)
                 print(line)
                 sets = num
         f.close()
@@ -115,26 +127,30 @@ def inp_to_case(in_name, outname):
     xyz_df = pd.read_csv(in_name, header=None, sep=",", skiprows=xyz_range)
 
     # Use ravel to stack the rows untop of one another
-    stacked_xyz = pd.DataFrame(xyz_df.iloc[:, 1:4].values.ravel('F'))
+    stacked_xyz = pd.DataFrame(xyz_df.iloc[:, 1:4].values.ravel("F"))
 
     # Define the elements dataframe
-    elements_df = pd.read_csv(in_name, header=None, sep=",", index_col=False, skiprows=element_range)
+    elements_df = pd.read_csv(
+        in_name, header=None, sep=",", index_col=False, skiprows=element_range
+    )
     elements_df = elements_df.astype(int)
 
-    with open(outname + ".case", 'w', newline="") as fout:
+    with open(outname + ".case", "w", newline="") as fout:
         # tells where to find the geometry (i.e. .geo file) and what format
-        fout.write('FORMAT\ntype: ensight gold\n\nGEOMETRY\nmodel:                           ')
+        fout.write(
+            "FORMAT\ntype: ensight gold\n\nGEOMETRY\nmodel:                           "
+        )
         # Scalars per node for 3d geometry
         fout.write(outname + ".geo\n")
         fout.close()
-    with open(outname + '.geo', 'w', newline="") as fout:
+    with open(outname + ".geo", "w", newline="") as fout:
         # Case header defining the name of the scalar array
         Title = str(outname) + ".inp"
         # fout to write the header
         fout.write("Title:  " + str(Title) + "\n")
         # fout to write the shape of the tetrahedral geometry (i.e. tetra4)
-        fout.write('Description 2\nnode id given\nelement id given\npart\n         1\n')
-        fout.write('Description PART\ncoordinates \n     ' + str(len(xyz_df)) + "\n")
+        fout.write("Description 2\nnode id given\nelement id given\npart\n         1\n")
+        fout.write("Description PART\ncoordinates \n     " + str(len(xyz_df)) + "\n")
         # use pandas in conjunction with fout to append the scalars
         xyz_df[0].to_csv(fout, header=False, index=False, sep=" ")
         # Write out the case format header with fout
@@ -145,14 +161,24 @@ def inp_to_case(in_name, outname):
         elements_df.iloc[:, 1:].to_csv(fout, header=False, index=False, sep=" ")
         fout.close()
 
-    #Write out the point cloud
+    # Write out the point cloud
     xyz_df.iloc[:, 1:4].to_csv(outname + "_pointcloud.csv", header=None, index=False)
 
     end = timer()
-    end_time = (end - start)
+    end_time = end - start
     print("Coversion took", end_time, "\n")
 
-def TetWild_2d_to_3d(input_path, in_file, output_path, tetwildpath, out_name="", edge_length="", target_verts="", laplacian=False):
+
+def TetWild_2d_to_3d(
+    input_path,
+    in_file,
+    output_path,
+    tetwildpath,
+    out_name="",
+    edge_length="",
+    target_verts="",
+    laplacian=False,
+):
     """
     Tetrahedralize from a 2d .off, .obj, .stl, or .ply file. Output is in .msh/.mesh format. The .msh is then converted to an inp using gmsh.
     It is assumed that gmsh is installed and on the system path.
@@ -167,7 +193,7 @@ def TetWild_2d_to_3d(input_path, in_file, output_path, tetwildpath, out_name="",
     :param laplacian:
     :return:
     """
-    #Reads in the input file name as a string.
+    # Reads in the input file name as a string.
     in_file = str(in_file)
 
     if out_name == "":
@@ -176,23 +202,23 @@ def TetWild_2d_to_3d(input_path, in_file, output_path, tetwildpath, out_name="",
         out_file = str(out_name) + ".inp"
         out_file = out_file.replace("..", ".")
 
-    #Removes the last 3 characters and appends the new output type
+    # Removes the last 3 characters and appends the new output type
     msh_file = str(in_file[:-4]) + "_.msh"
 
-    #Gives the long file path and name for reading in
+    # Gives the long file path and name for reading in
     in_file = pathlib.Path(input_path).joinpath(in_file)
 
-    #in_file = pathlib.Path(input_path).joinpath(in_file)
+    # in_file = pathlib.Path(input_path).joinpath(in_file)
     print("Input:", in_file)
 
-    #output = pathlib.Path(input_path).joinpath("lowres")
+    # output = pathlib.Path(input_path).joinpath("lowres")
     output = pathlib.Path(output_path).joinpath(out_file)
     print("Output: ", output)
 
-    #This is where meshlabserver lives
+    # This is where meshlabserver lives
     tetwildpath = pathlib.Path(tetwildpath).joinpath("TetWild.exe")
 
-    #So this is just putting it into a format that meshlab wants. -i is input, -o is output -s is the script to use
+    # So this is just putting it into a format that meshlab wants. -i is input, -o is output -s is the script to use
     command = '"' + str(tetwildpath) + '"' + " " + str(in_file)
     if edge_length != "":
         edge_length = float(edge_length)
@@ -203,13 +229,13 @@ def TetWild_2d_to_3d(input_path, in_file, output_path, tetwildpath, out_name="",
     if laplacian == True:
         command += " --is-laplacian "
 
-    #Tells us the command we are sending to the console
+    # Tells us the command we are sending to the console
     print("\nGoing to execute:\n                            {}".format(str(command)))
 
-    #Actually sends this to the console
+    # Actually sends this to the console
     output = subprocess.call(command)
 
-    #This SHOULD show us the error messages or whatever....
+    # This SHOULD show us the error messages or whatever....
     last_line = output
     print(last_line)
     print("\n\nDone!\n")
@@ -218,16 +244,16 @@ def TetWild_2d_to_3d(input_path, in_file, output_path, tetwildpath, out_name="",
     msh_file = pathlib.Path(temp).joinpath(msh_file)
     out_file = pathlib.Path(temp).joinpath(out_file)
 
-
     print("\nConverting msh to inp:\n                      {}".format(str(out_file)))
     print("\n")
-    sleep(.5)
+    sleep(0.5)
     get_gmsh_info(msh_file)
     print("\n")
 
     # Use meshio to read in the msh file and output the inp. Easier than hoping gmsh installed properly.
     mesh = meshio.read(str(msh_file))
     mesh.write(str(out_file))
+
 
 def ply_to_inp(inMesh, outName="", outDir=""):
     """
@@ -241,14 +267,14 @@ def ply_to_inp(inMesh, outName="", outDir=""):
     # Make sure we are dealing with a string
     inMesh = str(inMesh)
 
-    #If the blank string is passed, then remove the last 4 characters
+    # If the blank string is passed, then remove the last 4 characters
     if outName == "":
         outName = inMesh[:-4]
 
     # If the user happens to place a .inp on the end we can just replace it so it doesn't end up being .inp.inp
     outName = outName.replace(".inp", "")
 
-    #If there is no outDir then you can use pathlib to get the current working directory
+    # If there is no outDir then you can use pathlib to get the current working directory
     if outDir == "":
         outDir = pathlib.Path.cwd()
 
@@ -264,6 +290,7 @@ def ply_to_inp(inMesh, outName="", outDir=""):
     print(f"Saving {inMesh[:-4]} as an inp file to {str(outDir)}")
     pv.save_meshio(f"{outName}.inp", mesh)
 
+
 def _find_string(inFile, search_string, message=""):
     if type(search_string) == list:
         pass
@@ -272,21 +299,22 @@ def _find_string(inFile, search_string, message=""):
     with open(inFile, "rt") as file:
         for number, line in enumerate(file):
             if str(search_string) in line:
-                print(f'{message} starts at line {number}')
+                print(f"{message} starts at line {number}")
                 print(line)
                 line_number = number
         return line_number
 
-#Function to read in an inp and output a case
+
+# Function to read in an inp and output a case
 def inp_to_case_2d(in_name, outname):
-    '''
+    """
     Function to read in an ascii inp file and output a point cloud, for cloud compare, and a case file,
     readable by paraview.
 
     :param in_name: Abaqus Ascii inp file name.
     :param outname: Output file name
     :return:
-    '''
+    """
 
     start = timer()
     # Open the inp and find the diagnostic lines
@@ -305,7 +333,11 @@ def inp_to_case_2d(in_name, outname):
         xyz = _find_string(inFile=in_name, search_string="*Node", message="")
         range_1 = list(range(0, int(xyz) + 1))
     try:
-        elements = _find_string(inFile=in_name, search_string="******* E L E M E N T S *************", message="")
+        elements = _find_string(
+            inFile=in_name,
+            search_string="******* E L E M E N T S *************",
+            message="",
+        )
     except:
         elements = _find_string(inFile=in_name, search_string="*Element", message="")
     try:
@@ -329,25 +361,29 @@ def inp_to_case_2d(in_name, outname):
     xyz_df = pd.read_csv(in_name, header=None, sep=",", skiprows=xyz_range)
 
     # Use ravel to stack the rows untop of one another
-    stacked_xyz = pd.DataFrame(xyz_df.iloc[:, 1:4].values.ravel('F'))
+    stacked_xyz = pd.DataFrame(xyz_df.iloc[:, 1:4].values.ravel("F"))
 
     # Define the elements dataframe
-    elements_df = pd.read_csv(in_name, header=None, sep=",", index_col=False, skiprows=element_range)
+    elements_df = pd.read_csv(
+        in_name, header=None, sep=",", index_col=False, skiprows=element_range
+    )
 
-    with open(outname + ".case", 'w', newline="") as fout:
+    with open(outname + ".case", "w", newline="") as fout:
         # tells where to find the geometry (i.e. .geo file) and what format
-        fout.write('FORMAT\ntype: ensight gold\n\nGEOMETRY\nmodel:                           ')
+        fout.write(
+            "FORMAT\ntype: ensight gold\n\nGEOMETRY\nmodel:                           "
+        )
         # Scalars per node for 3d geometry
         fout.write(outname + ".geo\n")
         fout.close()
-    with open(outname + '.geo', 'w', newline="") as fout:
+    with open(outname + ".geo", "w", newline="") as fout:
         # Case header defining the name of the scalar array
         Title = str(outname) + ".inp"
         # fout to write the header
         fout.write("Title:  " + str(Title) + "\n")
         # fout to write the shape of the tetrahedral geometry (i.e. tetra4)
-        fout.write('Description 2\nnode id given\nelement id given\npart\n         1\n')
-        fout.write('Description PART\ncoordinates \n     ' + str(len(xyz_df)) + "\n")
+        fout.write("Description 2\nnode id given\nelement id given\npart\n         1\n")
+        fout.write("Description PART\ncoordinates \n     " + str(len(xyz_df)) + "\n")
         # use pandas in conjunction with fout to append the scalars
         xyz_df[0].to_csv(fout, header=False, index=False, sep=" ")
         # Write out the case format header with fout
@@ -358,43 +394,47 @@ def inp_to_case_2d(in_name, outname):
         elements_df.iloc[:, 1:].to_csv(fout, header=False, index=False, sep=" ")
         fout.close()
 
-    #Write out the point cloud
+    # Write out the point cloud
     xyz_df.iloc[:, 1:4].to_csv(outname + "_pointcloud.csv", header=None, index=False)
 
     end = timer()
-    end_time = (end - start)
+    end_time = end - start
     print(f"Coversion took {end_time:2.2f}\n")
 
+
 def mesh_2d_to_mesh_3d(input_name):
-    '''
+    """
 
     :param input_name:
     :return:
-    '''
+    """
     start = timer()
     # Read in the mesh using trimesh
     mesh_2d = trimesh.load(str(input_name))
 
-    #Print out the edge length information
+    # Print out the edge length information
     mesh_info(mesh_2d)
 
-    #Redefine the input_name for writing
+    # Redefine the input_name for writing
     input_name = input_name.replace(".ply", "")
     print("Coverting", input_name, "to 3d...")
 
-    #Set up the save name and location for the inp file
-    #Other file types available are Nastran (.bdf), Gmsh (.msh), Abaqus (*.inp), Diffpack (*.diff) and Inria Medit (*.mesh)
+    # Set up the save name and location for the inp file
+    # Other file types available are Nastran (.bdf), Gmsh (.msh), Abaqus (*.inp), Diffpack (*.diff) and Inria Medit (*.mesh)
     save_location = input_name + "_3d.inp"
 
-    #Use the gmsh interface to turn the 2d surface into a 3d volume and write out the inp file
-    #(the_mesh, file_name=Save_name/location, max_element=Max_length_of_element, mesher_id=algortihm to use
-    #1: Delaunay, 4: Frontal, 7: MMG3D, 10: HXT)
-    trimesh.interfaces.gmsh.to_volume(mesh_2d, file_name=save_location, max_element=None, mesher_id=1)
+    # Use the gmsh interface to turn the 2d surface into a 3d volume and write out the inp file
+    # (the_mesh, file_name=Save_name/location, max_element=Max_length_of_element, mesher_id=algortihm to use
+    # 1: Delaunay, 4: Frontal, 7: MMG3D, 10: HXT)
+    trimesh.interfaces.gmsh.to_volume(
+        mesh_2d, file_name=save_location, max_element=None, mesher_id=1
+    )
 
-    #test = trimesh.interfaces.gmsh.to_volume(mesh_2d, file_name=None, max_element=None, mesher_id=1)
+    # test = trimesh.interfaces.gmsh.to_volume(mesh_2d, file_name=None, max_element=None, mesher_id=1)
     end = timer()
-    end_time = (end - start)
+    end_time = end - start
     print("Coversion took", end_time, "\n")
+
 
 def get_gmsh_info(gmsh_input):
     gmsh.initialize()
