@@ -18,9 +18,18 @@ from Code.visual_utils import *
 ######################################
 
 # Set the input Directory
-directory = pathlib.Path(r"D:\Desktop\Carla\paper_3_final")
+directory = pathlib.Path(
+    r"Z:\RyanLab\Projects\vZubritzky\Asymmetry\Medtool\point_clouds"
+)
 os.chdir(directory)
 # point_distance = 1.75
+
+###################################################
+#    This section is only if you are              #
+#    working with case files, which isn't common  #
+#                                                 #
+###################################################
+
 
 # Read in the case files to a list and then sort them.
 case_list = glob.glob("*a_femRho.case")
@@ -53,14 +62,6 @@ for files in case_list:
 # If on Linux/Mac use forward slashes
 # directory = pathlib.Path(r"/gpfs/group/LiberalArts/default/tmr21_collab/RyanLab/Projects/nsf_human_variation/Point_cloud/Calcaneus")
 
-# If on Windows use back slashes with an "r" in front to not that it should be read (double backslashes also work).
-directory = pathlib.Path(r"D:\Desktop\Carla\paper_3_final")
-
-# Change to the directory with the point cloud files.
-os.chdir(str(directory))
-
-# The results for the autro3dgm matlab. Using the cortical bone alignment is the best practice
-auto3d_dir = pathlib.Path(r"D:\Desktop\Carla\paper_3_final\rotation_matrix")
 
 # This will be inserted into each name that is generated
 bone = "talus"
@@ -73,66 +74,29 @@ canonical_point_cloud = glob.glob("*canonical*.csv")
 print(canonical_point_cloud)
 
 # Define the average\canonical geometry
+# This is legacy at this point, we use vtks exclusively
 canonical_geo = glob.glob("*canonical*.geo")
 print(canonical_geo)
 
 # Define the group names for subsetting
-group_list = ["D", "E", "F"]
+group_list = ["Lefts", "Rights"]
 
 # Define the identifying text for each of the members of the group
-group1_list = [
-    "BeliManastir_G20",
-    "BO_1_M",
-    "BO_11_F",
-    "BO_4_F",
-    "BO_5_F",
-    "BO_6_F",
-    "Ilok_G72",
-    "Ilok_G70",
-    "NF_821012",
-    "Paks_1164",
-    "Paks_1166",
-    "Paks_1846",
-    "Paks_997",
-    "PARMA_7_F",
-    "PerkataNyuli_4263",
-    "Velia_T209",
-    "Velia_T342",
-    "Velia_T375",
-    "Velia_T390",
-]
-group2_list = [
-    "BeliManastir_G31",
-    "BO_40_M",
-    "BO_6_M",
-    "Paks_1865",
-    "PerkataNyuli_1575",
-    "PerkataNyuli_2123",
-    "PerkataNyuli_435",
-    "PerkataNyuli_752",
-    "Velia_T138",
-    "Velia_T320",
-    "Velia_T333",
-]
-group3_list = [
-    "BeliManastir_G4",
-    "BO_39_M",
-    "Paks_1156",
-    "PARMA_10_F",
-    "PerkataNyuli_116",
-    "PerkataNyuli_734",
-    "BO_81_M",
-    "Velia_T365",
-]
+group1_list = [item.name.partition("_")[0] for item in directory.glob("*L_Trab.vtk")]
+group2_list = [item.name.partition("_")[0] for item in directory.glob("*R_Trab.vtk")]
 
 # Create a list of lists for the identifiers
-group_identifiers = [group1_list, group2_list, group3_list]
-######################################
-#             Registrations          #
-######################################
+group_identifiers = [group1_list, group2_list]
 
-# This function writes out the correct folders into the point cloud directory
-setup_point_cloud_folder_struct(point_cloud_folder=directory)
+
+###################################################################
+#     Post analysis auto3d GM                                     #
+# NOTE!!!! If you did the auto3dgm on the grey vales you need a   #
+# modified workflow, which you would implement here               #
+###################################################################
+
+# The results for the autro3dgm matlab. Using the cortical bone alignment is the best practice
+auto3d_dir = pathlib.Path(r"D:\Desktop\Carla\paper_3_final\rotation_matrix")
 
 # This function makes a dictionary of the expected points clouds from the rotation matrix files, and checks to make
 # certain that there are as many properly named vtks in the point cloud folder
@@ -159,10 +123,59 @@ batch_initial_rigid(
 # When they are realigned, it sets the origin to 0 for all the aligned point clouds
 batch_set_origin_zero(point_cloud_folder=directory)
 
+
 # This function is needed to register the low res point clouds to the high res.
 # It seems they are generated slightly differently and thus need to be aligned. In the future there will be low res point
 # clouds generated from the high res vtks.
 batch_register_low_and_high_res(rotation_dict=rotation_dict, point_cloud_dir=directory)
+
+
+######################################
+#             Registrations          #
+######################################
+# TODO subset full vtk point clouds to work with1
+mesh = pv.read(vtk_list[0])
+mesh_size = abs(np.array(mesh.bounds[::2]) - np.array(mesh.bounds[1::2]))
+size = 64
+x = np.linspace(mesh.bounds[0], mesh.bounds[1], size)
+y = np.linspace(mesh.bounds[2], mesh.bounds[3], size)
+z = np.linspace(mesh.bounds[4], mesh.bounds[5], size)
+x, y, z = np.meshgrid(mesh_size)
+grid = pv.StructuredGrid(x, y, z)
+
+
+alg = vtk.vtkDecimatePro()
+alg.SetInputData(poly_data)
+alg.SetTargetReduction(reduction)
+alg.SetPreserveTopology(preserve_topology)
+alg.SetFeatureAngle(feature_angle)
+alg.SetSplitting(splitting)
+alg.SetSplitAngle(split_angle)
+alg.SetPreSplitMesh(pre_split_mesh)
+alg.Update()
+
+mesh = _get_output(alg)
+if inplace:
+    poly_data.overwrite(mesh)
+else:
+    return mesh
+
+
+result = grid.interpolate(mesh, radius=20.0)
+
+new_mesh = pv.create_grid(
+    mesh, dimensions=(mesh_size[0] / 2, mesh_size / 2, mesh_size / 2)
+)
+result = mesh.sample(new_mesh)
+
+pro_decimated = mesh.decimate_pro(target_reduction, preserve_topology=True)
+
+
+rotation_dict, vtk_list = get_rotation_dict(histomorph_vtk_dir=directory)
+
+# This function writes out the correct folders into the point cloud directory
+setup_point_cloud_folder_struct(point_cloud_folder=directory)
+
 
 # These next steps perform the rigid, affine, and deformable registrations automatically.
 batch_rigid(

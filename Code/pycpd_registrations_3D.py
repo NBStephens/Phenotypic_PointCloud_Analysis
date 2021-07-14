@@ -1376,7 +1376,7 @@ def align_vtks(
     directory = point_cloud_dir
     auto3d_dir = pathlib.Path(auto3dgm_dir)
     for key, value in rotation_dict.items():
-        search_item = value.replace("Dist", "") + "_Trab.vtk"
+        search_item = value + "_consolidated.vtk"
         if substring_remove in search_item:
             search_item = search_item.reaplce("Prox", "")
         found = [str(search_item) in vtk for vtk in vtk_list]
@@ -1653,11 +1653,9 @@ def batch_rigid(point_cloud_dir, canonical, iterations=100, tolerance=0.001):
     # Print the length of the list to verify it is finding all the files
     current_len = len(rigid_fileList)
 
-    moving = pd.read_csv(canonical_pc, sep=",", header=None)
-    if type(moving.iloc[0][0]) == str:
-        moving = pd.read_csv(canonical_pc, sep=",")
-    moving = moving.values
-
+    #moving = pd.read_csv(canonical_pc, sep=",", header=None)
+    #if type(moving.iloc[0][0]) in [str, object]:
+    moving = pd.read_csv(canonical_pc, sep=",")    
     print(f"There are {len(moving)} points in the moving cloud")
 
     # Loop over the list and perform the rigid registration
@@ -1670,16 +1668,16 @@ def batch_rigid(point_cloud_dir, canonical, iterations=100, tolerance=0.001):
 
         print(f"Rigid registration with {name_In}")
 
-        fixed = pd.read_csv(str(file), header=None, sep=",").values
+        #fixed = pd.read_csv(str(file), header=None, sep=",")
+        fixed = pd.read_csv(str(file), sep=",")
         print_fixed_points(fixed)
         print(f"There are {len(fixed)} points in the fixed cloud")
         print("\n")
         # Perform the rigid registration with 100 iterations or an error of 0.05
-
         rigid(
             name_in=name_In,
-            moving=moving,
-            fixed=fixed,
+            moving=moving.values,
+            fixed=fixed.values,
             iterations=int(iterations),
             tolerance=float(tolerance),
             outDir=point_cloud_dir,
@@ -1698,6 +1696,9 @@ def batch_affine(point_cloud_dir, iterations=100, tolerance=0.001):
 
     for file in affine_fileList:
         moving = pd.read_csv(file, header=None, sep=",")
+        if moving.iloc[0][0] == 'x':
+            moving = pd.read_csv(file, sep=",")
+
         moving = moving.values
         print(f"There are {len(moving)} points in the moving cloud")
         print_moving_points(moving)
@@ -1710,8 +1711,10 @@ def batch_affine(point_cloud_dir, iterations=100, tolerance=0.001):
 
         print(f"Performing affine registration with {name_In}...")
 
-        fixed_file = file.replace("_rigid_moving.csv", ".csv")
-        fixed = pd.read_csv(fixed_file, header=None, sep=",").values
+        fixed_file = file.replace("_rigid_moving.csv", ".csv")          
+        fixed = pd.read_csv(fixed_file, header=None, sep=",")
+        if fixed.iloc[0][0] == 'x':
+            fixed = pd.read_csv(fixed_file, sep=",").values
         print(f"There are {len(fixed)} points in the fixed cloud")
         print_fixed_points(fixed)
         print("\n")
@@ -1741,6 +1744,8 @@ def batch_deformable(point_cloud_dir, iterations=100, tolerance=0.001):
 
     for file in deformble_fileList:
         moving = pd.read_csv(file, header=None, sep=",")
+        if moving.iloc[0][0] == 'x':
+            moving = pd.read_csv(file, sep=",")
         moving = moving.values
 
         print(f"There are {len(moving)} points in the moving cloud")
@@ -1755,7 +1760,10 @@ def batch_deformable(point_cloud_dir, iterations=100, tolerance=0.001):
         print(f"Performing deformable registration with {name_In}...")
 
         fixed_file = rigid_directory.joinpath(f"{name_In}_aligned_original.csv")
-        fixed = pd.read_csv(fixed_file, header=None, sep=",").values
+        fixed = pd.read_csv(fixed_file, header=None, sep=",")
+        if fixed.iloc[0][0] == 'x':
+            fixed = pd.read_csv(fixed_file, sep=",")
+        fixed = fixed.values
         print(f"There are {len(fixed)} points in the fixed cloud")
         print_fixed_points(fixed)
         print("\n")
@@ -1850,23 +1858,28 @@ def batch_mapping(
         registered_cloud = deformable_dir.joinpath(
             key.replace("_rotation_matrix.txt", "_deformable_moving.csv")
         )
-
-        registered_cloud = pd.read_csv(registered_cloud, header=None)
-        if type(registered_cloud.iloc[0][0]) in [str, int]:
-            registered_cloud = registered_cloud.iloc[1:, :].astype(float)
+        if not registered_cloud.exists():
+                registered_cloud = deformable_dir.joinpath(f"{value}_deformable_moving.csv")
+        registered_cloud = pd.read_csv(registered_cloud, header=None)        
+        if registered_cloud.iloc[0][0] == "x":
+            registered_cloud = pd.read_csv(registered_cloud)        
         vtk_mesh = f"{value}_aligned.vtk"
-
         name_in = str(value)
         if canonical_geo:
             canonical_vtk = canonical_geo[0].replace(".geo", ".vtk")
         if canonical_vtk:
             canonical_vtk = canonical_vtk
         if type(canonical_pc) == list:
-            canonical_points = pd.read_csv(canonical_pc[0], header=None)
+            canonical_points = pd.read_csv(canonical_pc[0], header=None)            
         else:
             canonical_points = pd.read_csv(canonical_pc, header=None)
-        if type(canonical_points.iloc[0][0]) in [str, int]:
-            canonical_points = canonical_points.iloc[1:, :].astype(float)
+        if canonical_points.iloc[0][0] == "x":
+            if type(canonical_pc) == list:
+                canonical_points = pd.read_csv(canonical_pc[0])
+            else:
+                canonical_points = pd.read_csv(canonical_pc, header=None)        
+        if len(canonical_points) - len(registered_cloud) == 1:
+            
         map_cloud_from_vtk(
             name_in=name_in,
             scalar_vtk=vtk_mesh,
@@ -2494,8 +2507,13 @@ def consolidate_vtk(
 
     for consolidate in consolidate_scalars:
         print(f"\n Consolidating {consolidate}")
-        temp_mesh = pv.read(consolidate)
+        #Had to add the .vtk because Nick is an ASSSSS
+        temp_mesh = pv.read(f"{consolidate}.vtk")
         array_names = list(temp_mesh.point_arrays)
+        if not array_names:
+            temp_mesh = temp_mesh.cell_data_to_point_data()
+            array_names = list(temp_mesh.point_arrays)
+        print(array_names)
         for temp_array_name in array_names:
             # The consequences of building this without a proper road map
             new_array_name = temp_array_name.replace("ESca1", "")
