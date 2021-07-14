@@ -1879,7 +1879,7 @@ def batch_mapping(
             else:
                 canonical_points = pd.read_csv(canonical_pc, header=None)        
         if len(canonical_points) - len(registered_cloud) == 1:
-            
+            registered_cloud.loc[-1] = registered_cloud.loc[0]
         map_cloud_from_vtk(
             name_in=name_in,
             scalar_vtk=vtk_mesh,

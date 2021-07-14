@@ -9,7 +9,7 @@ import pyvista as pv
 from pandas.errors import EmptyDataError
 from timeit import default_timer as timer
 
-sys.path.append(r"D:\git_pulls\Phenotypic_PointCloud_Analysis")
+sys.path.append(r"z:\RyanLab\Projects\LDoershuk\diss_pointclouds\Phenotypic_PointCloud_Analysis")
 from Code.pycpd_registrations_3D import *
 from Code.visual_utils import *
 
