@@ -1878,8 +1878,17 @@ def batch_mapping(
                 canonical_points = pd.read_csv(canonical_pc[0])
             else:
                 canonical_points = pd.read_csv(canonical_pc, header=None)        
+
+        #!!!! this is a hacky fix implemented because headers ended up where they shouldn't
         if len(canonical_points) - len(registered_cloud) == 1:
-            registered_cloud.loc[-1] = registered_cloud.loc[0]
+            new_point = pd.DataFrame(registered_cloud.loc[0])
+            registered_cloud = pd.concat([new_point.T, registered_cloud], axis=0)
+            registered_cloud.reset_index(drop=True, inplace=True)
+            print("using that terrible fix that shouldn't exist")
+
+        print("cloud length:", len(registered_cloud))
+        print("canonical length:", len(canonical_points))
+
         map_cloud_from_vtk(
             name_in=name_in,
             scalar_vtk=vtk_mesh,
