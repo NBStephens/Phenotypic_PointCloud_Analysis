@@ -119,6 +119,25 @@ def _vtk_print_mesh_info(inputMesh):
     print(f"Origin:         {x_min:4.4f},     {y_min:4.4f},    {z_min:4.4f}")
     print(f"Center:          {center[0]:4.4f},    {center[1]:4.4f},   {center[2]:4.4f}")
 
+
+
+def _end_timer(start_timer, message=""):
+    """
+    Simple function to print the end of a timer in a single line instead of being repeated.
+    :param start_timer: timer start called using timer() after importing: from time import time as timer.
+    :param message: String that makes the timing of what event more clear (e.g. "segmenting", "meshing").
+    :return: Returns a sring mesuraing the end of a timed event in seconds.
+    """
+    start = start_timer
+    message = str(message)
+    end = timer()
+    elapsed = abs(start - end)
+    if message == "":
+        print(f"Operation took: {float(elapsed):10.4f} seconds")
+    else:
+        print(f"{message} took: {float(elapsed):10.4f} seconds")
+
+
 def _get_scalar_limits(
     input_mesh,
     scalar,

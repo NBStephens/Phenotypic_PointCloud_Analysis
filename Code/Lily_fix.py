@@ -134,17 +134,17 @@ for key, value in rotation_dict.items():
 # directory = pathlib.Path(r"/gpfs/group/LiberalArts/default/tmr21_collab/RyanLab/Projects/nsf_human_variation/Point_cloud/Calcaneus")
 
 # If on Windows use back slashes with an "r" in front to not that it should be read (double backslashes also work).
-directory = pathlib.Path(r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus")
+directory = pathlib.Path(r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\talus")
 #point_cloud_dir = pathlib.Path(r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus\point_clouds")
 
 # Change to the directory with the point cloud files.
 os.chdir(str(directory))
 
 # The results for the autro3dgm matlab. Using the cortical bone alignment is the best practice
-auto3d_dir = pathlib.Path(r"Z:\RyanLab\Projects\LDoershuk\diss_auto3dgm\calcaneus_results\aligned")
+auto3d_dir = pathlib.Path(r"Z:\RyanLab\Projects\LDoershuk\diss_auto3dgm\talus_results\aligned")
 
 # This will be inserted into each name that is generated
-bone = "calcaneus"
+bone = "talus"
 
 # Deprecated
 # point_distance = "1.75"
@@ -161,71 +161,65 @@ print(canonical_geo)
 group_list = ["BE", "DM", "NF"]
 
 # Define the identifying text for each of the members of the group
-group1_list = [
-    "BE01",
-"BE142",
-"BE145",
-"BE187",
-"BE191",
-"BE19A",
-"BE22",
-"BE25",
-"BE27",
-"BE33",
-"BE45",
-"BE84",
-"BE91",
-"BE93",
-]
-group2_list = [
-    "DM254",
-"DM276",
-"DM278",
-"DM287",
-"DM333",
-"DM334",
-"DM335",
-"DM381",
-"DM398",
-"DM404",
-"DM426",
-"DM432",
-"DM451",
-"DM495",
-"DM530",
-"DM594",
-"DM643",
-"DM859",
-"DM957",
-"DM991",
-]
-group3_list = [
-    "NF100",
-"NF105",
-"NF106",
-"NF132",
-"NF205",
-"NF20",
-"NF216",
-"NF217",
-"NF236",
-"NF243",
-"NF263",
-"NF27",
-"NF37",
-"NF41",
-"NF44",
-"NF45",
-"NF49",
-"NF50",
-"NF63",
-"NF66",
-"NF69",
-"NF6",
-"NF71",
-"NF80",
-"NF90"
-]
+group1_list = ['BE_01',
+ 'BE_142',
+ 'BE_145',
+ 'BE_187',
+ 'BE_191',
+ 'BE_19A',
+ 'BE_22',
+ 'BE_25',
+ 'BE_27',
+ 'BE_33',
+ 'BE_45',
+ 'BE_84',
+ 'BE_91',
+ 'BE_93']
+group2_list = ['DM_254',
+ 'DM_276',
+ 'DM_278',
+ 'DM_287',
+ 'DM_333',
+ 'DM_334',
+ 'DM_335',
+ 'DM_381',
+ 'DM_398',
+ 'DM_404',
+ 'DM_426',
+ 'DM_432',
+ 'DM_451',
+ 'DM_495',
+ 'DM_530',
+ 'DM_594',
+ 'DM_643',
+ 'DM_859',
+ 'DM_957',
+ 'DM_991']
+group3_list = ['NF_100',
+ 'NF_105',
+ 'NF_106',
+ 'NF_132',
+ 'NF_205',
+ 'NF_20',
+ 'NF_216',
+ 'NF_217',
+ 'NF_236',
+ 'NF_243',
+ 'NF_263',
+ 'NF_27',
+ 'NF_37',
+ 'NF_41',
+ 'NF_44',
+ 'NF_45',
+ 'NF_49',
+ 'NF_50',
+ 'NF_63',
+ 'NF_66',
+ 'NF_69',
+ 'NF_6',
+ 'NF_71',
+ 'NF_80',
+ 'NF_90']
 
 # Create a list of lists for the identifiers
 group_identifiers = [group1_list, group2_list, group3_list]
@@ -254,17 +248,29 @@ align_vtks(
 batch_initial_rigid(
     rotation_dict=rotation_dict,
     auto3d_dir=auto3d_dir,
-    point_cloud_dir=point_cloud_dir,
+    point_cloud_dir=directory,
     match="short_name",
+    rotation_key=True,# This is if the rotation matrix is the key in the rotation_dict
+    scalars_left=False,# This is if you get pancake point clouds switch this to True
 )
-
 # When they are realigned, it sets the origin to 0 for all the aligned point clouds
 batch_set_origin_zero(point_cloud_folder=directory)
+
+rotation_dict_1 = {}
+rotation_dict_2 = {}
+for num, key_value_pairs in enumerate(rotation_dict.items()):
+    print(key_value_pairs)
+    if num > 34:
+        rotation_dict_2[f"{key_value_pairs[0]}"] = key_value_pairs[1]
+    else:
+        rotation_dict_1[f"{key_value_pairs[0]}"] = key_value_pairs[1]
+
 
 # This function is needed to register the low res point clouds to the high res.
 # It seems they are generated slightly differently and thus need to be aligned. In the future there will be low res point
 # clouds generated from the high res vtks.
-batch_register_low_and_high_res(rotation_dict=rotation_dict, point_cloud_dir=directory)
+#batch_register_low_and_high_res(rotation_dict=rotation_dict, point_cloud_dir=directory)
+batch_register_low_and_high_res(rotation_dict=rotation_dict_2, point_cloud_dir=directory)
 
 # These next steps perform the rigid, affine, and deformable registrations automatically.
 batch_rigid(

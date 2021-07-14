@@ -912,6 +912,9 @@ def initial_rigid(
             rotation_file = pathlib.Path(auto3d_dir).joinpath(
                 f"{name_in}_{str(auto3d_ref)}_rotation_matrix.txt"
             )
+            if "__" in str(rotation_file):
+                rotation_file = pathlib.Path(str(rotation_file).replace("__", "_"))
+            print(rotation_file)
             rotation_matrix = pd.read_csv(
                 rotation_file, header=None, delim_whitespace=True
             )
@@ -952,6 +955,9 @@ def initial_rigid(
             origin = pathlib.Path(auto3d_dir).joinpath(
                 str(name_in) + "_" + str(auto3d_ref) + "_center.csv"
             )
+            if "__" in str(origin):
+                origin = pathlib.Path(str(origin).replace("__", "_"))
+
             origin = pd.read_csv(origin, sep=",").values.flatten()
 
         if origin.shape[0] != 3:
@@ -1481,7 +1487,7 @@ def setup_point_cloud_folder_struct(point_cloud_folder):
 
 
 # Use a for loop to process each point cloud file (i.e. f) in the list
-def batch_initial_rigid(rotation_dict, auto3d_dir, point_cloud_dir, match="long_name"):
+def batch_initial_rigid(rotation_dict, auto3d_dir, point_cloud_dir, match="long_name", rotation_key=False, scalars_left=True):
     auto3d_dir = pathlib.Path(auto3d_dir)
     directory = pathlib.Path(point_cloud_dir)
     for key, value in rotation_dict.items():
@@ -1489,8 +1495,7 @@ def batch_initial_rigid(rotation_dict, auto3d_dir, point_cloud_dir, match="long_
             base_name = str(key).replace("_rotation_matrix.txt", "")
         if match == "short_name":
             base_name = str(value)
-        print(base_name)
-        pc_match = glob.glob(f"*{base_name}*")
+        pc_match = glob.glob(f"*{base_name}*csv")
         if len(pc_match) == 0:
             substring_check = "trabecular"
             if substring_check in base_name:
@@ -1499,17 +1504,25 @@ def batch_initial_rigid(rotation_dict, auto3d_dir, point_cloud_dir, match="long_
                 )
                 base_name = base_name.replace("trabecular", "")
                 pc_match = glob.glob(f"*{base_name}*")
+
         if len(pc_match) == 0:
             print(f"No point cloud match for {key} found!)")
         elif len(pc_match) > 1:
+            pc_match = [x for x in pc_match if "_aligned.vtk" not in x]
             print(f"More than one point cloud match for {key} found!)")
+            print(pc_match)
         else:
             print(f"Input pointcloud name {pc_match}.")
             print("Initial registration with", base_name)
             moving_pc = pd.read_csv(pc_match[0], sep=",")
-            moving_pc = moving_pc.iloc[:, 1:].values
+            print(moving_pc)
+            if scalars_left:
+                moving_pc = moving_pc.iloc[:, 1:].values
+            else:
+                moving_pc = moving_pc.iloc[:, :3].values
             print(moving_pc.shape)
-            try:
+            if rotation_key:
+                base_name = key.replace("_rotation_matrix.txt", "")
                 initial_rigid(
                     name_in=base_name,
                     moving=moving_pc,
@@ -1519,9 +1532,9 @@ def batch_initial_rigid(rotation_dict, auto3d_dir, point_cloud_dir, match="long_
                     origin="",
                     outdir=directory.joinpath("rigid"),
                 )
-            except FileNotFoundError:
+            else:
                 initial_rigid(
-                    name_in=base_name[:-1],
+                    name_in=base_name,
                     moving=moving_pc,
                     auto3d_dir=auto3d_dir,
                     auto3d_ref="",
@@ -1529,6 +1542,16 @@ def batch_initial_rigid(rotation_dict, auto3d_dir, point_cloud_dir, match="long_
                     origin="",
                     outdir=directory.joinpath("rigid"),
                 )
+            # except FileNotFoundError:
+            #     initial_rigid(
+            #         name_in=base_name[:-1],
+            #         moving=moving_pc,
+            #         auto3d_dir=auto3d_dir,
+            #         auto3d_ref="",
+            #         rotation_matrix="",
+            #         origin="",
+            #         outdir=directory.joinpath("rigid"),
+            #     )
         print("\n")
 
 
@@ -1934,9 +1957,10 @@ def gather_scalars(point_cloud_dir, canonical_vtk, max_normalized=True):
 
     # Scalars are expected to be at the end of the name, and we can get the unique versions by using a set
     scalar_list = list(scalar_means.columns)
-    scalar_list = [item.rpartition("_")[-1] for item in scalar_list]
+    scalar_list = [item.replace("_Trab_Out_Fem_", "") for item in scalar_list]
+    scalar_list = [item.rpartition("_")[0] for item in scalar_list]
     scalar_list = list(set(scalar_list))
-
+    print("Mapping", scalar_list)
     if not max_normalized:
         mesh = map_canonical_vtk(
             scalar_list=scalar_list,
@@ -1980,14 +2004,21 @@ def map_canonical_vtk(
 
     base_name = [mapped.replace("_original_mapped.csv", "") for mapped in mapped_list]
     column_list = [str(pathlib.Path(name).parts[-1]) for name in base_name]
-
+    #print(scalar_list)
     for scalar in scalar_list:
-        print(f"Mapping {scalar} to vtk...")
+        print(f"Mapping {scalar} to vtk...\n")
         scalar_name = scalar
         if group_name != "":
             scalar_name = f"{group_name}_{scalar_name}"
         empty_scalar = pd.DataFrame()
-        current_scalars = [item for item in df_list.columns if f"_{scalar}" in item]
+        current_scalars = [item for item in df_list.columns if f"{scalar}_" in item]
+        if scalar == "TV_voxel" or scalar == "TV_smooth":
+            current_scalars = [item for item in current_scalars if "BVTV" not in item]
+        elif scalar == "BV_voxel" or scalar == "BV_smooth":
+            current_scalars = [item for item in current_scalars if "BSBV" not in item]
+        elif scalar == "BSBV_voxel" or scalar == "BSBV_smooth":
+            current_scalars = [item for item in df_list.columns if f"{scalar}_" in item]
+        print(len(current_scalars), "being mapped")
         empty_scalar = [
             pd.concat([empty_scalar, df_list[df]], axis=1) for df in current_scalars
         ]
@@ -2278,6 +2309,12 @@ def get_mean_vtk_groups(
                 item.rpartition("_")[-1] for item in list(scalar_list.columns)
             ]
             scalar_list = list(set(scalar_list))
+            print(scalar_list)
+            scalar_list = [item.replace("_Trab_Out_Fem_", "") for item in scalar_list]
+            scalar_list = [item.rpartition("_")[0] for item in scalar_list]
+            scalar_list = list(set(scalar_list))
+            print("Mapping", scalar_list)
+
             if max_normalized == True:
                 mesh, max_mesh = map_canonical_vtk(
                     scalar_list=scalar_list,
