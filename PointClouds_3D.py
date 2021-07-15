@@ -117,8 +117,10 @@ batch_initial_rigid(
     rotation_dict=rotation_dict,
     auto3d_dir=auto3d_dir,
     point_cloud_dir=directory,
-    match="long_name",
+    match="short_name",
 )
+
+
 
 # When they are realigned, it sets the origin to 0 for all the aligned point clouds
 batch_set_origin_zero(point_cloud_folder=directory)

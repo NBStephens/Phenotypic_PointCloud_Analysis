@@ -20,7 +20,7 @@ from Code.visual_utils import *
 ######################################
 ###To make point clouds from low res case files
 # Set the input Directory
-directory = pathlib.Path(r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus")
+directory = pathlib.Path(r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\talus")
 os.chdir(directory)
 point_distance = 2.00
 

@@ -1676,9 +1676,9 @@ def batch_rigid(point_cloud_dir, canonical, iterations=100, tolerance=0.001):
     # Print the length of the list to verify it is finding all the files
     current_len = len(rigid_fileList)
 
-    #moving = pd.read_csv(canonical_pc, sep=",", header=None)
+    moving = pd.read_csv(canonical_pc, sep=",", header=None)
     #if type(moving.iloc[0][0]) in [str, object]:
-    moving = pd.read_csv(canonical_pc, sep=",")    
+    #moving = pd.read_csv(canonical_pc, sep=",")
     print(f"There are {len(moving)} points in the moving cloud")
 
     # Loop over the list and perform the rigid registration
@@ -1737,7 +1737,8 @@ def batch_affine(point_cloud_dir, iterations=100, tolerance=0.001):
         fixed_file = file.replace("_rigid_moving.csv", ".csv")          
         fixed = pd.read_csv(fixed_file, header=None, sep=",")
         if fixed.iloc[0][0] == 'x':
-            fixed = pd.read_csv(fixed_file, sep=",").values
+            fixed = pd.read_csv(fixed_file, sep=",")
+        fixed = fixed.values
         print(f"There are {len(fixed)} points in the fixed cloud")
         print_fixed_points(fixed)
         print("\n")
