@@ -18,10 +18,12 @@ Author: Nick Stephens, Date: August, 2018
 """
 
 # Print it out so we can see the progress
+
+from Code.PPCA_utils import get_output_path
+from Code.PPCA_utils import _end_timer, _get_outDir, _vtk_print_mesh_info
 import os
 import sys
 from typing import Union
-
 import vtk
 import time
 import glob
@@ -47,8 +49,6 @@ from typing import Union
 
 script_dir = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(str(script_dir.parent))
-from Code.PPCA_utils import get_output_path
-from Code.PPCA_utils import _end_timer, _get_outDir, _vtk_print_mesh_info
 
 
 def visualize(iteration, error, X, Y, ax):
@@ -161,8 +161,10 @@ def get_fixed_correspondence(reg_P):
     idVect = np.argmax(
         correspondence, axis=0
     )  # Grab the id of the max values in the matrix across rows
-    maxVect = np.max(correspondence, axis=0)  # Grab the max values in those vectors
-    correspondence_points = np.vstack((idVect, maxVect))  # Put the two together
+    # Grab the max values in those vectors
+    maxVect = np.max(correspondence, axis=0)
+    correspondence_points = np.vstack(
+        (idVect, maxVect))  # Put the two together
     fixed_correspondence = pd.DataFrame(
         correspondence_points
     )  # Place them into a datframe with the fixed index along the column
@@ -286,7 +288,8 @@ def visual_affine(name_in, moving, fixed, iterations, tolerance, matrix=False):
             fmt="%f",
         )
     df = get_fixed_correspondence(reg.P)
-    df.to_csv(name_in + "_affine_points_correspondence.csv", sep=",", index=False)
+    df.to_csv(name_in + "_affine_points_correspondence.csv",
+              sep=",", index=False)
     end = timer()
     end_time = end - start
     print(end_time)
@@ -314,7 +317,8 @@ def visual_deformable(name_in, moving, fixed, iterations, tolerance, matrix=Fals
     print("\n")
     print("New matrix:")
     print(reg.TY)  # The registered matrix
-    np.savetxt(name_in + "deformable_moving.csv", reg.TY, delimiter=",", fmt="%f")
+    np.savetxt(name_in + "deformable_moving.csv",
+               reg.TY, delimiter=",", fmt="%f")
     if matrix == False:
         pass
     else:
@@ -325,7 +329,8 @@ def visual_deformable(name_in, moving, fixed, iterations, tolerance, matrix=Fals
             fmt="%f",
         )
     df = get_fixed_correspondence(reg.P)
-    df.to_csv(name_in + "deformable_points_correspondence.csv", sep=",", index=False)
+    df.to_csv(name_in + "deformable_points_correspondence.csv",
+              sep=",", index=False)
     end = timer()
     end_time = end - start
     print(end_time)
@@ -577,7 +582,8 @@ def map_cloud(name_in, grid, points, original, canonical_geo, scalar, scalar_val
         # Write out the values to a ensight gold scalar format for paraview
         print("Writing out case file...\n")
         with open(name_in + "_" + str(scalar) + "_original_mapped.Esca1", "w") as fout:
-            col_name = "ESca1" + name_in + "_" + str(scalar) + "_original_mapped"
+            col_name = "ESca1" + name_in + "_" + \
+                str(scalar) + "_original_mapped"
             fout.write(col_name)
             fout.write("\npart\n         1\ntetra4\n")
             scalar_mapped.to_csv(
@@ -665,7 +671,8 @@ def map_cloud_max_normalized(
         # Write out the values to a ensight gold scalar format for paraview
         print("Writing out _max_normalized case file...\n")
         with open(
-            name_in + "_" + str(scalar) + "_original_mapped_max_normalized.Esca1", "w"
+            name_in + "_" + str(scalar) +
+            "_original_mapped_max_normalized.Esca1", "w"
         ) as fout:
             col_name = (
                 "ESca1"
@@ -680,7 +687,8 @@ def map_cloud_max_normalized(
                 fout, header=False, index=False, sep=" ", line_terminator="\n"
             )
         with open(
-            name_in + "_" + str(scalar) + "_original_mapped_max_normalized.case", "w"
+            name_in + "_" + str(scalar) +
+            "_original_mapped_max_normalized.case", "w"
         ) as fout:
             col_name = name_in
             fout.write(
@@ -706,7 +714,8 @@ def map_cloud_max_normalized(
         mapped_cloud = pd.concat([cloud_coord, scalar_mapped], axis=1)
         # Write out the CSV file so you can view it
         mapped_cloud.to_csv(
-            name_in + "_" + str(scalar) + "_deformed_mapped_max_normalized.csv",
+            name_in + "_" + str(scalar) +
+            "_deformed_mapped_max_normalized.csv",
             sep=",",
             index=False,
         )
@@ -717,7 +726,8 @@ def map_cloud_max_normalized(
         original_mapped = pd.concat([original, scalar_mapped], axis=1)
         # Write out the undistorted point cloud with the interpolated values
         original_mapped.to_csv(
-            name_in + "_" + str(scalar) + "_original_mapped_max_normalized.csv",
+            name_in + "_" + str(scalar) +
+            "_original_mapped_max_normalized.csv",
             index=False,
         )
 
@@ -745,7 +755,8 @@ def write_case(outname, scalars, scalar_type, canonical_geo):
         fout.write("\npart\n         1\ntetra4\n")
 
         # The scalars are then written line by line using fout
-        scalars.to_csv(fout, header=False, index=False, sep=" ", float_format="%.10f")
+        scalars.to_csv(fout, header=False, index=False,
+                       sep=" ", float_format="%.10f")
     # Open an Ensight Gold .case header
     with open(outname + ".case", "w", newline="") as fout:
         fout.write(
@@ -780,7 +791,8 @@ def get_mean_case(mean_fileList, outname, canonical_geo, scalar, outDir=""):
     currentDir = pathlib.Path.cwd()
 
     shutil.copy(
-        canonical_geo, pathlib.Path(outDir).joinpath(outname + "_original_average.geo")
+        canonical_geo, pathlib.Path(outDir).joinpath(
+            outname + "_original_average.geo")
     )
     for f in mean_fileList:
         # Use pandas to read the comma separated values
@@ -796,7 +808,8 @@ def get_mean_case(mean_fileList, outname, canonical_geo, scalar, outDir=""):
         name = name.replace(".csv", "")
         print(name)
         # Use numpy save text to write out the indiviedual values
-        outputName = pathlib.Path(outDir).joinpath(name + "_" + str(scalar) + ".csv")
+        outputName = pathlib.Path(outDir).joinpath(
+            name + "_" + str(scalar) + ".csv")
         np.savetxt(str(outputName), data, "%5.10f", delimiter=",")
     # Make sure we have a string for the output name
     outname = str(outname)
@@ -820,7 +833,8 @@ def get_mean_case(mean_fileList, outname, canonical_geo, scalar, outDir=""):
     mean_scalaroutputName = pathlib.Path(outDir).joinpath(
         outname + "mean_" + str(scalar) + "_3d.csv"
     )
-    mean_scalar.to_csv(str(mean_scalaroutputName), index=False, sep=" ")  # pd.mean_bin
+    mean_scalar.to_csv(str(mean_scalaroutputName),
+                       index=False, sep=" ")  # pd.mean_bin
     os.chdir(outDir)
     # Write the mean values to a case file, with the fout in ensigh gold format
     # the "newline" argument prevents an automatic return being written on windows
@@ -840,7 +854,8 @@ def get_mean_case(mean_fileList, outname, canonical_geo, scalar, outDir=""):
             "FORMAT\ntype: ensight gold\n\nGEOMETRY\nmodel:                           "
         )
         # Scalars per node for 3d geometry
-        fout.write(outname + "_original_average.geo\n\nVARIABLE\nscalar per node:  ")
+        fout.write(
+            outname + "_original_average.geo\n\nVARIABLE\nscalar per node:  ")
         # Case header information for the name of the scalar file
         fout.write(col_name1 + " " + "  " + col_name1 + ".Esca1")
 
@@ -858,7 +873,8 @@ def get_mean_case(mean_fileList, outname, canonical_geo, scalar, outDir=""):
         fout.write(
             "FORMAT\ntype: ensight gold\n\nGEOMETRY\nmodel:                           "
         )
-        fout.write(outname + "_original_average.geo\n\nVARIABLE\nscalar per node:  ")
+        fout.write(
+            outname + "_original_average.geo\n\nVARIABLE\nscalar per node:  ")
         fout.write(col_name2 + " " + "  " + col_name2 + ".Esca1")
     # Calculate the coefficient of variation and write the case
     coef_var = scalar_array.std(axis=1) / scalar_array.mean(axis=1)
@@ -871,7 +887,8 @@ def get_mean_case(mean_fileList, outname, canonical_geo, scalar, outDir=""):
         fout.write(
             "FORMAT\ntype: ensight gold\n\nGEOMETRY\nmodel:                           "
         )
-        fout.write(outname + "_original_average.geo\n\nVARIABLE\nscalar per node:  ")
+        fout.write(
+            outname + "_original_average.geo\n\nVARIABLE\nscalar per node:  ")
         fout.write(col_name3 + " " + "  " + col_name3 + ".Esca1")
     # Copy and rename the geometry from the original case file.
     # Note that this muyst be ascii, not binary as output by avizo
@@ -913,7 +930,8 @@ def initial_rigid(
                 f"{name_in}_{str(auto3d_ref)}_rotation_matrix.txt"
             )
             if "__" in str(rotation_file):
-                rotation_file = pathlib.Path(str(rotation_file).replace("__", "_"))
+                rotation_file = pathlib.Path(
+                    str(rotation_file).replace("__", "_"))
             print(rotation_file)
             rotation_matrix = pd.read_csv(
                 rotation_file, header=None, delim_whitespace=True
@@ -988,7 +1006,8 @@ def initial_rigid(
     print("\n New matrix:")
     print(reg)
     if outdir == "":
-        np.savetxt(name_in + "_aligned_original.csv", reg, delimiter=",", fmt="%f")
+        np.savetxt(name_in + "_aligned_original.csv",
+                   reg, delimiter=",", fmt="%f")
     else:
         outdir = pathlib.Path(outdir)
         outName = outdir.joinpath(f"{name_in}_aligned_original.csv")
@@ -1011,7 +1030,8 @@ def set_origin_to_zero(name_In, point_cloud, outDir=""):
     with np.printoptions(precision=3, suppress=True):
         print(new_centroid)
     if outDir == "":
-        np.savetxt(name_in + "_aligned_original.csv", centered, delimiter=",", fmt="%f")
+        np.savetxt(name_in + "_aligned_original.csv",
+                   centered, delimiter=",", fmt="%f")
     else:
         outDir = pathlib.Path(outDir)
         save_name = outDir.joinpath(f"{name_in}_aligned_original.csv")
@@ -1042,7 +1062,8 @@ def _get_mean_case_groups(group_list, group_identifiers, bone, canonical_geo):
             except:
                 print("No members for DA {} group\n.".format(str(key)))
 
-        print("\n{} BVTV list contains {} items".format(key, len(group_list_bvtv)))
+        print("\n{} BVTV list contains {} items".format(
+            key, len(group_list_bvtv)))
 
         if len(group_list_bvtv) > 1:
             outname = "Mean_" + str(key) + "_" + str(bone) + "_BVTV"
@@ -1137,10 +1158,13 @@ def get_mean_case_groups(
                 print("Group identifiers not understood....")
 
             if len(group_scalars) > 1:
-                print(f"\n{key} {scales} list contains {len(group_scalars)} items")
-                get_output_path(directory=pathlib.Path.cwd(), append_name=str(scales))
+                print(
+                    f"\n{key} {scales} list contains {len(group_scalars)} items")
+                get_output_path(directory=pathlib.Path.cwd(),
+                                append_name=str(scales))
                 outPath = pathlib.Path.cwd().joinpath(str(scales))
-                outname = "Mean_" + str(key) + "_" + str(bone) + "_" + str(scales)
+                outname = "Mean_" + str(key) + "_" + \
+                    str(bone) + "_" + str(scales)
                 get_mean_case(
                     group_scalars,
                     str(outname),
@@ -1149,7 +1173,8 @@ def get_mean_case_groups(
                     outDir=outPath,
                 )
             else:
-                print(f"Not enough individuals in {key} to create a mean {scales}.\n")
+                print(
+                    f"Not enough individuals in {key} to create a mean {scales}.\n")
                 if max_normalized == True:
                     outname_max = (
                         "Mean_"
@@ -1363,7 +1388,8 @@ def find_vector(xyz1, xyz2):
     :return:
     """
     # setting unitSphere to True will make the vector scaled down to a sphere with a radius one, instead of it's orginal length
-    final_vector = [xyz2[dimension] - coord for dimension, coord in enumerate(xyz1)]
+    final_vector = [xyz2[dimension] -
+                    coord for dimension, coord in enumerate(xyz1)]
     vector_length = np.linalg.norm(final_vector)
     return final_vector, vector_length
 
@@ -1422,8 +1448,10 @@ def get_initial_aligned_dict(auto3dgm_dir, csv_list=False):
     auto3d_dir = pathlib.Path(auto3dgm_dir)
     print(f"Getting matching dictionary from rotation matrices...\n")
     # Find the rotation matrix and then reverse name match for the initial rigid
-    rotation_names = glob.glob(str(auto3d_dir.joinpath("*_rotation_matrix.txt")))
-    rotation_names = [rotation.rsplit("\\", 1)[-1] for rotation in rotation_names]
+    rotation_names = glob.glob(
+        str(auto3d_dir.joinpath("*_rotation_matrix.txt")))
+    rotation_names = [rotation.rsplit("\\", 1)[-1]
+                      for rotation in rotation_names]
     print(f"Found {len(rotation_names)} matrices in auto3dgm folder....\n")
 
     # This is ugly and I hate it, but it works.
@@ -1456,8 +1484,9 @@ def get_rotation_dict(
     histomorph_vtk_dir = pathlib.Path(histomorph_vtk_dir)
     print(f"Getting matching dictionary from rotation matrices...\n")
     # Find the rotation matrix and then reverse name match for the initial rigid
-    rotated_names = [item.name for item in histomorph_vtk_dir.glob("*.vtk") if "canonical" not in item.name]
-    
+    rotated_names = [item.name for item in histomorph_vtk_dir.glob(
+        "*.vtk") if "canonical" not in item.name]
+
     print(f"Found {len(rotated_names)} matrices in histomorph vtk folder....\n")
 
     # This is ugly and I hate it, but it works.
@@ -1467,8 +1496,6 @@ def get_rotation_dict(
     rotation_dict = dict(zip(rotated_names, rotation_values))
 
     return rotation_dict, rotated_names
-
-
 
 
 def setup_point_cloud_folder_struct(point_cloud_folder):
@@ -1560,7 +1587,8 @@ def batch_set_origin_zero(point_cloud_folder):
     rigid_folder = pathlib.Path(point_cloud_folder).joinpath("rigid")
 
     # Set the origin of the aligned point clouds to 0 so they are all centered:
-    aligned_fileList = glob.glob(str(rigid_folder.joinpath("*_aligned_original.csv")))
+    aligned_fileList = glob.glob(
+        str(rigid_folder.joinpath("*_aligned_original.csv")))
     print(f"Setting the {len(aligned_fileList)} point clouds origin to 0...")
 
     # Use a for loop to process each point cloud file (i.e. f) in the list
@@ -1599,7 +1627,8 @@ def batch_register_deformed_and_high_res(rotation_dict, point_cloud_dir):
             moving_name = moving_name[:-1]
         moving_name = f"{moving_name}_deformable_moving"
         print(f"Registering {moving_name}...")
-        moving = glob.glob(str(deformed_directory.joinpath(f"*{moving_name}*")))
+        moving = glob.glob(
+            str(deformed_directory.joinpath(f"*{moving_name}*")))
         moving = pd.read_csv(moving[0], sep=",", header=None)
 
         rigid_low_to_high(
@@ -1665,7 +1694,8 @@ def batch_rigid(point_cloud_dir, canonical, iterations=100, tolerance=0.001):
         canonical_pc = canonical
 
     # Use glob to match text of a file name and build a list of the point clouds to be aligned
-    rigid_fileList = glob.glob(str(rigid_directory.joinpath("*_aligned_original.csv")))
+    rigid_fileList = glob.glob(
+        str(rigid_directory.joinpath("*_aligned_original.csv")))
 
     # Sort the file list by ascending order
     rigid_fileList.sort()
@@ -1677,7 +1707,7 @@ def batch_rigid(point_cloud_dir, canonical, iterations=100, tolerance=0.001):
     current_len = len(rigid_fileList)
 
     moving = pd.read_csv(canonical_pc, sep=",", header=None)
-    #if type(moving.iloc[0][0]) in [str, object]:
+    # if type(moving.iloc[0][0]) in [str, object]:
     #moving = pd.read_csv(canonical_pc, sep=",")
     print(f"There are {len(moving)} points in the moving cloud")
 
@@ -1712,7 +1742,8 @@ def batch_rigid(point_cloud_dir, canonical, iterations=100, tolerance=0.001):
 
 def batch_affine(point_cloud_dir, iterations=100, tolerance=0.001):
     rigid_directory = pathlib.Path(point_cloud_dir).joinpath("rigid")
-    affine_fileList = glob.glob(str(rigid_directory.joinpath("*_rigid_moving.csv")))
+    affine_fileList = glob.glob(
+        str(rigid_directory.joinpath("*_rigid_moving.csv")))
     affine_fileList.sort()
     print(affine_fileList)
     current_len = len(affine_fileList)
@@ -1734,7 +1765,7 @@ def batch_affine(point_cloud_dir, iterations=100, tolerance=0.001):
 
         print(f"Performing affine registration with {name_In}...")
 
-        fixed_file = file.replace("_rigid_moving.csv", ".csv")          
+        fixed_file = file.replace("_rigid_moving.csv", ".csv")
         fixed = pd.read_csv(fixed_file, header=None, sep=",")
         if fixed.iloc[0][0] == 'x':
             fixed = pd.read_csv(fixed_file, sep=",")
@@ -1783,7 +1814,8 @@ def batch_deformable(point_cloud_dir, iterations=100, tolerance=0.001):
 
         print(f"Performing deformable registration with {name_In}...")
 
-        fixed_file = rigid_directory.joinpath(f"{name_In}_aligned_original.csv")
+        fixed_file = rigid_directory.joinpath(
+            f"{name_In}_aligned_original.csv")
         fixed = pd.read_csv(fixed_file, header=None, sep=",")
         if fixed.iloc[0][0] == 'x':
             fixed = pd.read_csv(fixed_file, sep=",")
@@ -1883,10 +1915,11 @@ def batch_mapping(
             key.replace("_rotation_matrix.txt", "_deformable_moving.csv")
         )
         if not registered_cloud.exists():
-                registered_cloud = deformable_dir.joinpath(f"{value}_deformable_moving.csv")
-        registered_cloud = pd.read_csv(registered_cloud, header=None)        
+            registered_cloud = deformable_dir.joinpath(
+                f"{value}_deformable_moving.csv")
+        registered_cloud = pd.read_csv(registered_cloud, header=None)
         if registered_cloud.iloc[0][0] == "x":
-            registered_cloud = pd.read_csv(registered_cloud)        
+            registered_cloud = pd.read_csv(registered_cloud)
         vtk_mesh = f"{value}_aligned.vtk"
         name_in = str(value)
         if canonical_geo:
@@ -1894,19 +1927,20 @@ def batch_mapping(
         if canonical_vtk:
             canonical_vtk = canonical_vtk
         if type(canonical_pc) == list:
-            canonical_points = pd.read_csv(canonical_pc[0], header=None)            
+            canonical_points = pd.read_csv(canonical_pc[0], header=None)
         else:
             canonical_points = pd.read_csv(canonical_pc, header=None)
         if canonical_points.iloc[0][0] == "x":
             if type(canonical_pc) == list:
                 canonical_points = pd.read_csv(canonical_pc[0])
             else:
-                canonical_points = pd.read_csv(canonical_pc, header=None)        
+                canonical_points = pd.read_csv(canonical_pc, header=None)
 
         #!!!! this is a hacky fix implemented because headers ended up where they shouldn't
         if len(canonical_points) - len(registered_cloud) == 1:
             new_point = pd.DataFrame(registered_cloud.loc[0])
-            registered_cloud = pd.concat([new_point.T, registered_cloud], axis=0)
+            registered_cloud = pd.concat(
+                [new_point.T, registered_cloud], axis=0)
             registered_cloud.reset_index(drop=True, inplace=True)
             print("using that terrible fix that shouldn't exist")
 
@@ -1928,7 +1962,8 @@ def gather_scalars(point_cloud_dir, canonical_vtk, max_normalized=True):
 
     mapped_dir = point_cloud_dir.joinpath("mapping")
     results_dir = point_cloud_dir.joinpath("results")
-    mean_mesh_outname = results_dir.joinpath(canonical_vtk.replace(".vtk", "_mean.vtk"))
+    mean_mesh_outname = results_dir.joinpath(
+        canonical_vtk.replace(".vtk", "_mean.vtk"))
     mean_mesh_max_outname = results_dir.joinpath(
         canonical_vtk.replace(".vtk", "_mean_max_normalized.vtk")
     )
@@ -1944,7 +1979,8 @@ def gather_scalars(point_cloud_dir, canonical_vtk, max_normalized=True):
 
     scalar_means = pd.DataFrame()
     for mapped in mapped_list:
-        base_name = pathlib.Path(mapped).name.replace("_original_mapped.csv", "")
+        base_name = pathlib.Path(mapped).name.replace(
+            "_original_mapped.csv", "")
         scalar_values = pd.read_csv(mapped)
         scalar_values = scalar_values.iloc[:, 3:]
         means = pd.DataFrame(scalar_values.mean(axis=0))
@@ -1954,7 +1990,8 @@ def gather_scalars(point_cloud_dir, canonical_vtk, max_normalized=True):
         scalar_means = pd.concat([scalar_means, means.T], axis=1)
 
     # scalar_means.columns = column_list
-    scalar_means.to_csv(str(results_dir.joinpath("mapped_scalar_means.csv")), sep=",")
+    scalar_means.to_csv(str(results_dir.joinpath(
+        "mapped_scalar_means.csv")), sep=",")
 
     # Scalars are expected to be at the end of the name, and we can get the unique versions by using a set
     scalar_list = list(scalar_means.columns)
@@ -2001,24 +2038,29 @@ def map_canonical_vtk(
     df_list = [pd.read_csv(file) for file in mapped_list]
     df_list = [df.iloc[:, 3:] for df in df_list]
     df_list = pd.concat(df_list, axis=1)
-    max_norm = lambda col: col / col.max()
+    def max_norm(col): return col / col.max()
 
-    base_name = [mapped.replace("_original_mapped.csv", "") for mapped in mapped_list]
+    base_name = [mapped.replace("_original_mapped.csv", "")
+                 for mapped in mapped_list]
     column_list = [str(pathlib.Path(name).parts[-1]) for name in base_name]
-    #print(scalar_list)
+    # print(scalar_list)
     for scalar in scalar_list:
         print(f"Mapping {scalar} to vtk...\n")
         scalar_name = scalar
         if group_name != "":
             scalar_name = f"{group_name}_{scalar_name}"
         empty_scalar = pd.DataFrame()
-        current_scalars = [item for item in df_list.columns if f"{scalar}_" in item]
+        current_scalars = [
+            item for item in df_list.columns if f"{scalar}_" in item]
         if scalar == "TV_voxel" or scalar == "TV_smooth":
-            current_scalars = [item for item in current_scalars if "BVTV" not in item]
+            current_scalars = [
+                item for item in current_scalars if "BVTV" not in item]
         elif scalar == "BV_voxel" or scalar == "BV_smooth":
-            current_scalars = [item for item in current_scalars if "BSBV" not in item]
+            current_scalars = [
+                item for item in current_scalars if "BSBV" not in item]
         elif scalar == "BSBV_voxel" or scalar == "BSBV_smooth":
-            current_scalars = [item for item in df_list.columns if f"{scalar}_" in item]
+            current_scalars = [
+                item for item in df_list.columns if f"{scalar}_" in item]
         print(len(current_scalars), "being mapped")
         empty_scalar = [
             pd.concat([empty_scalar, df_list[df]], axis=1) for df in current_scalars
@@ -2149,7 +2191,8 @@ def vtk_visualize_deformation(originalPoints, deformedPoints, magnitudeScalar):
     linesPolyData = vtk.vtkPolyData()
     linesPolyData.SetPoints(pts)
     linesPolyData.SetLines(lines)
-    linesPolyData.GetCellData().SetScalars(npsup.numpy_to_vtk(magnitudeScalar, deep=1))
+    linesPolyData.GetCellData().SetScalars(
+        npsup.numpy_to_vtk(magnitudeScalar, deep=1))
     return linesPolyData
 
 
@@ -2199,10 +2242,12 @@ def visualize_registration_movement(point_cloud_dir, canonical_pc):
         rigid_df.columns = ["x", "y", "z", "distance"]
         print(rigid_df)
         rigid_df.to_csv(
-            str(diagnostics_dir.joinpath(f"{name_In}_registration_movement.csv")),
+            str(diagnostics_dir.joinpath(
+                f"{name_In}_registration_movement.csv")),
             sep=",",
         )
-        new_df = pd.concat([pd.DataFrame(rigid_df.iloc[:, :3]), deformable], axis=1)
+        new_df = pd.concat(
+            [pd.DataFrame(rigid_df.iloc[:, :3]), deformable], axis=1)
         new_df.columns = ["x1", "y1", "z1", "x2", "y2", "z3"]
         temp_df = new_df.apply(df_vector, axis=1)
         temp_df = pd.DataFrame(temp_df, columns=["temp"])
@@ -2223,7 +2268,8 @@ def visualize_registration_movement(point_cloud_dir, canonical_pc):
     z_vectors = z_vectors.mean(axis=1)
     magnitudes = magnitudes.mean(axis=1)
 
-    mean_vectors = pd.concat([x_vectors, y_vectors, z_vectors, magnitudes], axis=1)
+    mean_vectors = pd.concat(
+        [x_vectors, y_vectors, z_vectors, magnitudes], axis=1)
     mean_vectors.columns = ["xdif", "ydif", "zdif", "magnitude"]
 
     canonical_points["Mean_deformation"] = mean_distance
@@ -2269,7 +2315,8 @@ def get_mean_vtk_groups(
             identifier = values
             try:
                 group_scalars = glob.glob(
-                    str(mapping_dir.joinpath(f"*{identifier}*_original_mapped.csv"))
+                    str(mapping_dir.joinpath(
+                        f"*{identifier}*_original_mapped.csv"))
                 )
                 group_scalars.sort()
             except:
@@ -2311,7 +2358,8 @@ def get_mean_vtk_groups(
             ]
             scalar_list = list(set(scalar_list))
             print(scalar_list)
-            scalar_list = [item.replace("_Trab_Out_Fem_", "") for item in scalar_list]
+            scalar_list = [item.replace("_Trab_Out_Fem_", "")
+                           for item in scalar_list]
             scalar_list = [item.rpartition("_")[0] for item in scalar_list]
             scalar_list = list(set(scalar_list))
             print("Mapping", scalar_list)
@@ -2351,7 +2399,8 @@ def vtp_visualize_deformation(point_cloud_dir, canonical_pc, outName):
     else:
         deformed_name = f"mean_deformed_{outName}"
 
-    deformable_list = glob.glob(str(deformable_dir.joinpath("*_deformable_moving.csv")))
+    deformable_list = glob.glob(
+        str(deformable_dir.joinpath("*_deformable_moving.csv")))
     all_distances = pd.DataFrame()
     for deform in deformable_list:
         temp_df = pd.read_csv(deform, header=None)
@@ -2433,7 +2482,8 @@ def get_distplot(
     colors="Paired",
     background="white",
 ):
-    registered_dataset = pd.DataFrame(registered_dataset.groupby("group").mean()).T
+    registered_dataset = pd.DataFrame(
+        registered_dataset.groupby("group").mean()).T
     registered_dataset["Mean"] = registered_dataset.mean(axis=1)
     group_list = list(registered_dataset.columns)
     if isinstance(colors, list):
@@ -2517,9 +2567,11 @@ def consolidate_case(
                     temp_case = vtk_read_case(temp)
                     temp_conversion = pv.wrap(temp_case)
                     temp_mesh = temp_conversion.pop(0)
-                    temp_array_name = list(temp_mesh.point_arrays.items())[0][0]
+                    temp_array_name = list(
+                        temp_mesh.point_arrays.items())[0][0]
                     temp_array_name = temp_array_name.replace("ESca1", "")
-                    temp_array_name = temp_array_name.replace("_original_", "_")
+                    temp_array_name = temp_array_name.replace(
+                        "_original_", "_")
                     temp_array_name = temp_array_name.replace("__", "_")
                     temp_array = list(temp_mesh.point_arrays.items())[0][1]
                     vtk_mesh[str(temp_array_name)] = temp_array
@@ -2534,14 +2586,18 @@ def consolidate_vtk(
     bayes_match: bool = False,
     scalars=["BVTV", "DA", "BSBV", "Tb_Sp", "Tb_Th"],
     pairwise=False,
+    missing_scalar_name=False
 ):
     vtk_mesh = pv.read(input_mesh)
     vtk_mesh.clear_arrays()
     if bayes_match:
+        print("Matching baye...")
         consolidate_scalars = []
         for scalar in scalars:
-            consolidate_scalars.append(glob.glob(f"*{scalar}*{name_match}*.vtk"))
-        consolidate_scalars = list(itertools.chain.from_iterable(consolidate_scalars))
+            consolidate_scalars.append(
+                glob.glob(f"*{scalar}*{name_match}*.vtk"))
+        consolidate_scalars = list(
+            itertools.chain.from_iterable(consolidate_scalars))
     elif pairwise:
         possibilities = list(itertools.combinations(name_match, 2))
         consolidate_scalars = [
@@ -2554,14 +2610,17 @@ def consolidate_vtk(
 
     for consolidate in consolidate_scalars:
         print(f"\n Consolidating {consolidate}")
-        #Had to add the .vtk because Nick is an ASSSSS
-        temp_mesh = pv.read(f"{consolidate}.vtk")
+        # Had to add the .vtk because Nick is an ASSSSS
+        if pathlib.Path(consolidate).exists():
+            temp_mesh = pv.read(f"{consolidate}")
+        else:
+            temp_mesh = pv.read(f"{consolidate}.vtk")
         array_names = list(temp_mesh.point_arrays)
         if not array_names:
             temp_mesh = temp_mesh.cell_data_to_point_data()
             array_names = list(temp_mesh.point_arrays)
-        print(array_names)
         for temp_array_name in array_names:
+            new_array_name = None
             # The consequences of building this without a proper road map
             new_array_name = temp_array_name.replace("ESca1", "")
             new_array_name = new_array_name.replace("_original_", "_")
@@ -2570,14 +2629,33 @@ def consolidate_vtk(
             new_array_name = new_array_name.replace(
                 "_max_normalized_mean_", "_max_normalized_"
             )
-            new_array_name = new_array_name.replace("_max_normalized_", "_max_norm_")
+            new_array_name = new_array_name.replace(
+                "_max_normalized_", "_max_norm_")
             new_array_name = new_array_name.replace("_std_", "_standard_dev_")
             new_array_name = new_array_name.replace("DA_val01_", "DA_")
-            for scalar in scalars:
-                new_array_name = new_array_name.replace(f"{scalar}_mean_", f"{scalar}_")
             new_array_name = f"{new_array_name}_{name_match}"
+            print(new_array_name)
+
             if new_array_name[0] == "_":
                 new_array_name = f"{new_array_name[1:]}"
+
+            if missing_scalar_name:
+                current_scalar = [
+                    scalar for scalar in scalars if scalar in consolidate]
+                if len(current_scalar) > 1:
+                    print("Found more than one matching scalar!")
+                if not current_scalar:
+                    print("No scalars match in the given list!")
+                if pairwise:
+                    new_array_name = f"{new_array_name}_{current_scalar[0]}"
+                else:
+                    new_array_name = f"{current_scalar[0]}_{new_array_name}"
+            else:
+                for scalar in scalars:
+                    print(scalar)
+                    new_array_name = new_array_name.replace(
+                        f"{scalar}_mean_", f"{scalar}_")
+
             print(f"              {new_array_name}")
             temp_array = temp_mesh[temp_array_name]
             vtk_mesh[str(new_array_name)] = temp_array
@@ -2614,7 +2692,8 @@ def gather_multiscalar_vtk(
             new_array_name = new_array_name.replace(
                 "_max_normalized_mean_", "_max_normalized_"
             )
-            new_array_name = new_array_name.replace("_max_normalized_", "_max_norm_")
+            new_array_name = new_array_name.replace(
+                "_max_normalized_", "_max_norm_")
             new_array_name = new_array_name.replace("_std_", "_standard_dev_")
             new_array_name = new_array_name.replace("DA_val01_", "DA_")
             new_array_name = new_array_name.replace("__", "_")
