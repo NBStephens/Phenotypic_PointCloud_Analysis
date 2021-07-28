@@ -891,8 +891,10 @@ def generate_stats_plot(
         plotter.add_text("Posterior", font_size=f_size)
     else:
         plotter.add_text("Distal", font_size=f_size)
+    if f"{scalar} {scalar}" in plotter_text:
+        plotter_text = f"All {scalar} {scalar_type}"
     plotter.add_text(
-        f"{group} {scalar} {scalar_type}",
+        plotter_text,
         position="upper_right",
         font_size=25,
         font=None,
