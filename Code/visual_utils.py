@@ -829,20 +829,6 @@ def generate_stats_plot(
     plotter.view_xz()
     plotter.add_text("Lateral", font_size=f_size)
 
-    plotter.subplot(1, 2)
-    plotter.add_mesh(stats_mesh, **wire_args)
-    plotter.add_mesh(threshed, **vel_dargs)
-    plotter.enable_parallel_projection()
-    plotter.view_yx()
-    current_pos = plotter.camera_position
-    r = R.from_euler("xyz", [0.0, 180.0, 0.0], degrees=True)
-    new_position = tuple(
-        np.dot(np.array(r.as_matrix()), np.array(current_pos[0])))
-    plotter.camera_position = [new_position, current_pos[1], (0.0, 0.0, 1.0)]
-    plotter.enable_parallel_projection()    
-    plotter.enable_parallel_projection()
-    plotter.add_text("Proximal", font_size=f_size)
-
     plotter.subplot(0, 2)
     plotter.enable_parallel_projection()
     plotter.add_mesh(stats_mesh, **wire_args)
@@ -859,6 +845,19 @@ def generate_stats_plot(
         name=None,
         viewport=False,
     )
+
+    plotter.subplot(1, 2)
+    plotter.add_mesh(stats_mesh, **wire_args)
+    plotter.add_mesh(threshed, **vel_dargs)
+    plotter.view_yx()
+    current_pos = plotter.camera_position
+    r = R.from_euler("xyz", [0.0, 180.0, 0.0], degrees=True)
+    new_position = tuple(
+        np.dot(np.array(r.as_matrix()), np.array(current_pos[0])))
+    new_position = [new_position, current_pos[1], current_pos[2]]
+    plotter.camera_position = new_position
+    plotter.add_text("Proximal", font_size=f_size)
+    plotter.reset_camera()
 
     # Set up a name for the screen shot
     screen_shot = f"{scalar}_{name_value}_{scalar_type}_screen_shot"
