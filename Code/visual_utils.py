@@ -11,7 +11,7 @@ from matplotlib.colors import rgb2hex
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from scipy.spatial.transform import Rotation as R
 from matplotlib.colors import LinearSegmentedColormap
-
+from typing import List
 
 def _end_timer(start_timer, message=""):
     """
@@ -61,7 +61,8 @@ def vtk_celldata_to_pointdata(inputMesh):
 
     # Use list comprehension to rapidly grab the first float value in the stored tuple for each point (len(points)).
     np_scalars = pd.DataFrame(
-        np.array([float(point_scalars.GetTuple(x)[0]) for x in range(0, len(points))])
+        np.array([float(point_scalars.GetTuple(x)[0])
+        for x in range(0, len(points))])
     )
 
     # Concat the two dataframes along the y axis and rename the columns
@@ -509,11 +510,11 @@ def generate_plot(
     scalar_value,
     scalar_type,
     colormap,
-    limits=[0, 0.50],
-    n_of_bar_txt_portions=11,
+    limits: List = [0, 0.50],
+    n_of_bar_txt_portions: int = 11,
     output_type="png",
-    from_bayes=False,
-    foot_bones=False,
+    from_bayes: bool = False,
+    foot_bones: bool = False,
 ):
     output_choices = ["svg", "eps", "ps", "pdf", "tex"]
     scalar = scalar
@@ -534,6 +535,7 @@ def generate_plot(
         scalar_name = scalar_value
 
     # Set up the arguments to be passed to pyvista
+    # print("Your limits are set to:", limits)
     vel_dargs = dict(
         scalars=f"{scalar_name}",
         clim=limits,
