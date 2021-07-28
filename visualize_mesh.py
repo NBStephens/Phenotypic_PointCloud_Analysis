@@ -27,8 +27,9 @@ from Code.visual_utils import *
 
 
 ########Get your screen shots############
+bone = "talus"
 directory = pathlib.Path(
-    r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus\results"
+    rf"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\{bone}\results"
 )
 os.chdir(directory)
 
@@ -38,7 +39,7 @@ pv.set_plot_theme("dark")
 rename_dict = {"__": "_"}
 
 # Define the input name and read in to memory for visualization
-mesh_name = "consolidated_calcaneus_means_transformed.vtk"
+mesh_name = f"consolidated_{bone}_means_transformed.vtk"
 input_mesh = pv.read(mesh_name)
 
 # This expects variable names to follow a convention.
@@ -68,12 +69,13 @@ get_scalar_screens(
 get_scalar_screens(
     input_mesh=input_mesh,
     scalars=["BVTV"],
-    limits=[0.0, 0.35],
+    limits=[0.0, 0.55],
     consistent_limits=True,
     n_of_bar_txt_portions=6,
     output_type="png",
     from_bayes=False,
     scale_without_max_norm=True,
+    foot_bones=False
 )
 
 
