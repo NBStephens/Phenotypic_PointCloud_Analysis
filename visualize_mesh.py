@@ -27,7 +27,7 @@ from Code.visual_utils import *
 
 
 ########Get your screen shots############
-bone = "talus"
+bone = "calcaneus"
 directory = pathlib.Path(
     rf"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\{bone}\results"
 )
@@ -43,7 +43,7 @@ mesh_name = f"consolidated_{bone}_means_transformed.vtk"
 input_mesh = pv.read(mesh_name)
 
 # This expects variable names to follow a convention.
-rename_dict = {"_std": "_standard_dev", "__": "_", "_coef": "_coef_var"}
+rename_dict = {"_std": "_standard_dev", "__": "_", "_coef": "_coef_var", "_var_var": ""}
 input_mesh = scalar_name_cleanup(input_mesh=input_mesh, replace_dict=rename_dict)
 input_mesh.save(f"{mesh_name}")
 
@@ -75,7 +75,7 @@ get_scalar_screens(
     output_type="png",
     from_bayes=False,
     scale_without_max_norm=True,
-    foot_bones=False
+    foot_bones=False,
 )
 
 
@@ -194,7 +194,7 @@ vtk_out_dir = pathlib.Path(
     r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\tibia\visualize"
 )
 
-# !!!!!!! THIS WILL NOT WORK WITHOUT SOME SORT OF LIST, HERE IT IS A ROTATION DICT THAT IS MADE BELOW> REPLACE THIS!
+# !!!!!!! THIS WILL NOT WORK WITHOUT SOME SORT OF LIST!
 
 os.chdir(stats_folder)
 current_folder_list = stats_folder.glob("*_traces")
@@ -208,7 +208,7 @@ os.chdir(vtk_out_dir)
 
 # Bayes directory
 directory = pathlib.Path(
-    r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus\visualize"
+    r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\talus\visualize"
 )
 os.chdir(directory)
 

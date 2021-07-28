@@ -11,6 +11,7 @@ from matplotlib.colors import rgb2hex
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from scipy.spatial.transform import Rotation as R
 from matplotlib.colors import LinearSegmentedColormap
+from typing import List
 
 
 def _end_timer(start_timer, message=""):
@@ -435,8 +436,13 @@ def get_scalar_screens(
                         range_limits = [range_min, range_max]
 
                 if key == "Average":
-                    if limits:
+                    if type(limits) == list and len(limits) == 2:
                         range_limits = limits
+                    else:
+                        print(
+                            "Limits must be in list list form! Setting to default of [0.0, 0.5]"
+                        )
+                        range_limits = [0.0, 0.5]
                     if scalar in ["BVTV", "CtTh", "BSBV", "Tb_N"]:
                         color_map = scalar_color_dict_256[str(scalar)]
                     else:
@@ -471,11 +477,11 @@ def generate_plot(
     scalar_value,
     scalar_type,
     colormap,
-    limits=[0, 0.50],
-    n_of_bar_txt_portions=11,
+    limits: List = [0, 0.50],
+    n_of_bar_txt_portions: int = 11,
     output_type="png",
-    from_bayes=False,
-    foot_bones=False,
+    from_bayes: bool = False,
+    foot_bones: bool = False,
 ):
     output_choices = ["svg", "eps", "ps", "pdf", "tex"]
     scalar = scalar
@@ -496,6 +502,7 @@ def generate_plot(
         scalar_name = scalar_value
 
     # Set up the arguments to be passed to pyvista
+    # print("Your limits are set to:", limits)
     vel_dargs = dict(
         scalars=f"{scalar_name}",
         clim=limits,
