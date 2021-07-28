@@ -61,8 +61,7 @@ def vtk_celldata_to_pointdata(inputMesh):
 
     # Use list comprehension to rapidly grab the first float value in the stored tuple for each point (len(points)).
     np_scalars = pd.DataFrame(
-        np.array([float(point_scalars.GetTuple(x)[0])
-                 for x in range(0, len(points))])
+        np.array([float(point_scalars.GetTuple(x)[0]) for x in range(0, len(points))])
     )
 
     # Concat the two dataframes along the y axis and rename the columns
@@ -119,8 +118,7 @@ def _vtk_print_mesh_info(inputMesh):
     print(f"Elements:  {cells}, Nodes: {points}\n")
     print(f"Physcial size: x: {x_max:4.4f}, y: {y_max:4.4f}, z:{z_max:4.4f}")
     print(f"Origin:         {x_min:4.4f},     {y_min:4.4f},    {z_min:4.4f}")
-    print(
-        f"Center:          {center[0]:4.4f},    {center[1]:4.4f},   {center[2]:4.4f}")
+    print(f"Center:          {center[0]:4.4f},    {center[1]:4.4f},   {center[2]:4.4f}")
 
 
 def _end_timer(start_timer, message=""):
@@ -163,8 +161,7 @@ def _get_scalar_limits(
         current_list = [
             measure for measure in current_list if "_coef_var" not in measure
         ]
-    array_min_max = _get_min_max(
-        input_mesh=input_mesh, scalar_list=current_list)
+    array_min_max = _get_min_max(input_mesh=input_mesh, scalar_list=current_list)
     if divergent:
         limits = _divergent_limits(array_min_max)
         print(f"{scalar}:", limits)
@@ -182,19 +179,16 @@ def _get_min_max(input_mesh, scalar_list):
     current_list = scalar_list
     array_min_max = []
     for points in current_list:
-        current_array = np.array(
-            input_mesh.get_data_range(arr_var=str(points)))
+        current_array = np.array(input_mesh.get_data_range(arr_var=str(points)))
         try:
             current_array_min = float(
-                current_array[(current_array < 100) &
-                              (current_array > -100)].min()
+                current_array[(current_array < 100) & (current_array > -100)].min()
             )
         except ValueError:
             current_array_min = 0
         try:
             current_array_max = float(
-                current_array[(current_array < 100) &
-                              (current_array > -100)].max()
+                current_array[(current_array < 100) & (current_array > -100)].max()
             )
         except ValueError:
             current_array_max = 0
@@ -247,8 +241,7 @@ def merge_pdfs(pdf_directory, out_name, string_match="", output_directory=""):
     if string_match == "":
         pdf_list = glob.glob(str(pdf_directory.joinpath(f"*.pdf")))
     else:
-        pdf_list = glob.glob(
-            str(pdf_directory.joinpath(f"*{string_match}*.pdf")))
+        pdf_list = glob.glob(str(pdf_directory.joinpath(f"*{string_match}*.pdf")))
     if output_directory == "":
         output_directory = pathlib.Path.cwd()
     else:
@@ -328,8 +321,7 @@ def subset_scalar_list(
         if not full_list:
             if stringent:
                 if verbose:
-                    print(
-                        f"Couldn't subset {scalar} scalars by {scalar_string}")
+                    print(f"Couldn't subset {scalar} scalars by {scalar_string}")
             return False
     else:
         full_list = [measure for measure in scalar_list if scalar in measure]
@@ -359,8 +351,7 @@ def _get_analytical_lists(scalar_list, scalar):
         scalar_list=scalar_list,
         scalar=str(scalar),
         scalar_string="",
-        remove_strings=["_coef_var", "_standard_dev",
-                        "_HDI_range", "_posterior_sd"],
+        remove_strings=["_coef_var", "_standard_dev", "_HDI_range", "_posterior_sd"],
         stringent=False,
         verbose=True,
     )
@@ -418,6 +409,7 @@ def get_scalar_screens(
     output_type="png",
     from_bayes=False,
     scale_without_max_norm=True,
+    foot_bones=False,
 ):
     scalar_color_dict_10 = _generate_color_dict(n_bins=10)
     scalar_color_dict_256 = _generate_color_dict(n_bins=256)
@@ -438,10 +430,8 @@ def get_scalar_screens(
                     )
                 if not consistent_limits:
                     for value in values:
-                        range_max = float(
-                            input_mesh.point_arrays[str(value)].max())
-                        range_min = float(
-                            input_mesh.point_arrays[str(value)].min())
+                        range_max = float(input_mesh.point_arrays[str(value)].max())
+                        range_min = float(input_mesh.point_arrays[str(value)].min())
                         range_limits = [range_min, range_max]
 
                 if key == "Average":
@@ -471,6 +461,7 @@ def get_scalar_screens(
                         n_of_bar_txt_portions=n_of_bar_txt_portions,
                         output_type=output_type,
                         from_bayes=from_bayes,
+                        foot_bones=foot_bones,
                     )
 
 
@@ -484,6 +475,7 @@ def generate_plot(
     n_of_bar_txt_portions=11,
     output_type="png",
     from_bayes=False,
+    foot_bones=False,
 ):
     output_choices = ["svg", "eps", "ps", "pdf", "tex"]
     scalar = scalar
@@ -539,7 +531,10 @@ def generate_plot(
     current_pos = plotter.camera_position
     new_position = [current_pos[0], current_pos[1], (0.0, 0.0, 1.0)]
     plotter.camera_position = new_position
-    plotter.add_text("Posterior", font_size=f_size)
+    if foot_bones:
+        plotter.add_text("Plantar", font_size=f_size)
+    else:
+        plotter.add_text("Posterior", font_size=f_size)
 
     plotter.subplot(1, 0)
     plotter.enable_parallel_projection()
@@ -547,15 +542,17 @@ def generate_plot(
     plotter.enable_parallel_projection()
     plotter.view_yz()
     plotter.enable_parallel_projection()
-    plotter.add_text("Anterior", font_size=f_size)
+    if foot_bones:
+        plotter.add_text("Superior", font_size=f_size)
+    else:
+        plotter.add_text("Anterior", font_size=f_size)
 
     plotter.subplot(0, 1)
     plotter.add_mesh(input_mesh, **vel_dargs)
     plotter.view_zx()
     current_pos = plotter.camera_position
     r = R.from_euler("xyz", [0.0, 0.0, 0.0], degrees=True)
-    new_position = tuple(
-        np.dot(np.array(r.as_matrix()), np.array(current_pos[0])))
+    new_position = tuple(np.dot(np.array(r.as_matrix()), np.array(current_pos[0])))
     plotter.camera_position = [new_position, current_pos[1], (0.0, 0.0, 1.0)]
     plotter.add_text("Lateral", font_size=f_size)
 
@@ -565,11 +562,27 @@ def generate_plot(
     plotter.view_xz()
     plotter.add_text("Medial", font_size=f_size)
 
+    plotter.enable_parallel_projection()
+    plotter.subplot(1, 2)
+    plotter.add_mesh(input_mesh, **vel_dargs)
+    plotter.view_xy()
+    current_pos = plotter.camera_position
+    r = R.from_euler("xyz", [0.0, 0.0, 90.0], degrees=True)
+    new_position = tuple(np.dot(np.array(r.as_matrix()), np.array(current_pos[0])))
+    plotter.camera_position = [new_position, current_pos[1], (0.0, 0.0, 1.0)]
+    if foot_bones:
+        plotter.add_text("Anterior", font_size=f_size)
+    else:
+        plotter.add_text("Proximal", font_size=f_size)
+
     plotter.subplot(0, 2)
     plotter.add_mesh(input_mesh, **vel_dargs)
     plotter.enable_parallel_projection()
     plotter.view_yx()
-    plotter.add_text("Distal", font_size=f_size)
+    if foot_bones:
+        plotter.add_text("Posterior", font_size=f_size)
+    else:
+        plotter.add_text("Distal", font_size=f_size)
     plotter.add_text(
         f"{group} {scalar} {scalar_type}",
         position="upper_right",
@@ -579,18 +592,6 @@ def generate_plot(
         name=None,
         viewport=False,
     )
-
-    plotter.subplot(1, 2)
-    plotter.add_mesh(input_mesh, **vel_dargs)
-    plotter.enable_parallel_projection()
-    plotter.view_yx()
-    current_pos = plotter.camera_position
-    r = R.from_euler("xyz", [0.0, 180.0, 0.0], degrees=True)
-    new_position = tuple(
-        np.dot(np.array(r.as_matrix()), np.array(current_pos[0])))
-    new_position = [new_position, current_pos[1], current_pos[2]]
-    plotter.camera_position = new_position
-    plotter.add_text("Proximal", font_size=f_size)
 
     plotter.reset_camera()
 
@@ -674,6 +675,7 @@ def get_bayes_thresh_screens(
     estimate_limits=True,
     n_of_bar_txt_portions=11,
     output_type="png",
+    foot_bones=False,
 ):
     stats_mesh = input_mesh
     scalar_color_dict_10 = _generate_color_dict(n_bins=10)
@@ -722,6 +724,7 @@ def get_bayes_thresh_screens(
                 limits=limits,
                 n_of_bar_txt_portions=n_of_bar_txt_portions,
                 output_type=output_type,
+                foot_bones=foot_bones,
             )
 
 
@@ -734,6 +737,7 @@ def generate_stats_plot(
     n_of_bar_txt_portions: int = 11,
     colormap="hot",
     output_type: str = "png",
+    foot_bones=False,
 ):
     output_choices = ["svg", "eps", "ps", "pdf", "tex"]
     scalar = scalar
@@ -800,14 +804,20 @@ def generate_stats_plot(
     current_pos = plotter.camera_position
     new_position = [current_pos[0], current_pos[1], (0.0, 0.0, 1.0)]
     plotter.camera_position = new_position
-    plotter.add_text("Dorsal", font_size=f_size)
+    if foot_bones:
+        plotter.add_text("Plantar", font_size=f_size)
+    else:
+        plotter.add_text("Dorsal", font_size=f_size)
 
     plotter.subplot(1, 0)
     plotter.enable_parallel_projection()
     plotter.add_mesh(stats_mesh, **wire_args)
     plotter.add_mesh(threshed, **vel_dargs)
     plotter.view_yz()
-    plotter.add_text("Anterior", font_size=f_size)
+    if foot_bones:
+        plotter.add_text("Superior", font_size=f_size)
+    else:
+        plotter.add_text("Anterior", font_size=f_size)
 
     plotter.subplot(0, 1)
     plotter.enable_parallel_projection()
@@ -816,8 +826,7 @@ def generate_stats_plot(
     plotter.view_zx()
     current_pos = plotter.camera_position
     r = R.from_euler("xyz", [0.0, 0.0, 0.0], degrees=True)
-    new_position = tuple(
-        np.dot(np.array(r.as_matrix()), np.array(current_pos[0])))
+    new_position = tuple(np.dot(np.array(r.as_matrix()), np.array(current_pos[0])))
     plotter.camera_position = [new_position, current_pos[1], (0.0, 0.0, 1.0)]
     plotter.enable_parallel_projection()
     plotter.add_text("Medial", font_size=f_size)
@@ -835,7 +844,10 @@ def generate_stats_plot(
     plotter.add_mesh(threshed, **vel_dargs)
     plotter.view_yx()
     plotter.enable_parallel_projection()
-    plotter.add_text("Distal", font_size=f_size)
+    if foot_bones:
+        plotter.add_text("Posterior", font_size=f_size)
+    else:
+        plotter.add_text("Distal", font_size=f_size)
     plotter.add_text(
         f"{group} {scalar} {scalar_type}",
         position="upper_right",
@@ -846,17 +858,19 @@ def generate_stats_plot(
         viewport=False,
     )
 
+    plotter.enable_parallel_projection()
     plotter.subplot(1, 2)
     plotter.add_mesh(stats_mesh, **wire_args)
     plotter.add_mesh(threshed, **vel_dargs)
-    plotter.view_yx()
+    plotter.view_xy()
     current_pos = plotter.camera_position
-    r = R.from_euler("xyz", [0.0, 180.0, 0.0], degrees=True)
-    new_position = tuple(
-        np.dot(np.array(r.as_matrix()), np.array(current_pos[0])))
-    new_position = [new_position, current_pos[1], current_pos[2]]
-    plotter.camera_position = new_position
-    plotter.add_text("Proximal", font_size=f_size)
+    r = R.from_euler("xyz", [0.0, 0.0, 90.0], degrees=True)
+    new_position = tuple(np.dot(np.array(r.as_matrix()), np.array(current_pos[0])))
+    plotter.camera_position = [new_position, current_pos[1], (0.0, 0.0, 1.0)]
+    if foot_bones:
+        plotter.add_text("Anterior", font_size=f_size)
+    else:
+        plotter.add_text("Proximal", font_size=f_size)
     plotter.reset_camera()
 
     # Set up a name for the screen shot
