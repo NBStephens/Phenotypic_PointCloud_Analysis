@@ -1,2 +1,4 @@
 Code/__pycache__/Mesh_2d_to_3d.cpython-37.pyc
 *.pyc
+*.vscode
+*.idea

@@ -17,6 +17,7 @@ from vtk.numpy_interface import dataset_adapter as dsa
 
 sys.path.append(
     r'z:/RyanLab/Projects/LDoershuk/diss_pointclouds/Phenotypic_PointCloud_Analysis')
+
 ######################################
 #    Begin the actual operations     #
 ######################################
