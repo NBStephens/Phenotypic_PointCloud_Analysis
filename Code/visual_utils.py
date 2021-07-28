@@ -13,7 +13,6 @@ from scipy.spatial.transform import Rotation as R
 from matplotlib.colors import LinearSegmentedColormap
 from typing import List
 
-
 def _end_timer(start_timer, message=""):
     """
     Simple function to print the end of a timer in a single line instead of being repeated.
@@ -62,7 +61,8 @@ def vtk_celldata_to_pointdata(inputMesh):
 
     # Use list comprehension to rapidly grab the first float value in the stored tuple for each point (len(points)).
     np_scalars = pd.DataFrame(
-        np.array([float(point_scalars.GetTuple(x)[0]) for x in range(0, len(points))])
+        np.array([float(point_scalars.GetTuple(x)[0])
+        for x in range(0, len(points))])
     )
 
     # Concat the two dataframes along the y axis and rename the columns
@@ -420,55 +420,88 @@ def get_scalar_screens(
         for key, values in analytical_dict.items():
             if values:
                 print(key)
-                if consistent_limits:
-                    range_limits = _get_scalar_limits(
-                        input_mesh=input_mesh,
-                        scalar=scalar,
-                        scalar_list=values,
-                        divergent=False,
-                        remove_max_norm=scale_without_max_norm,
-                        average_scalar=False,
-                    )
-                if not consistent_limits:
-                    for value in values:
-                        range_max = float(input_mesh.point_arrays[str(value)].max())
-                        range_min = float(input_mesh.point_arrays[str(value)].min())
-                        range_limits = [range_min, range_max]
-
-                if key == "Average":
-                    if type(limits) == list and len(limits) == 2:
-                        range_limits = limits
-                    else:
-                        print(
-                            "Limits must be in list list form! Setting to default of [0.0, 0.5]"
+                if key in ["Coeff. Var.", "Std. Dev."]:
+                    color_map = scalar_color_dict_10[str(key)]
+                    if consistent_limits:
+                        range_limits = _get_scalar_limits(
+                            input_mesh=input_mesh,
+                            scalar=scalar,
+                            scalar_list=values,
+                            divergent=False,
+                            remove_max_norm=scale_without_max_norm,
+                            average_scalar=False,
                         )
-                        range_limits = [0.0, 0.5]
+                    else:
+                        max_list = []
+                        min_list = []                        
+                        for value in values:
+                            range_max = float(input_mesh.point_arrays[str(value)].max())
+                            range_min = float(input_mesh.point_arrays[str(value)].min())
+                            max_list.append(range_max)
+                            min_list.append(range_min)
+                        range_max = np.array(max_list).max()
+                        range_min = np.array(min_list).min()
+                        range_limits = [range_min, range_max]
+                    for value in values:
+                        scalar_type = f"{key}"                        
+                        generate_plot(
+                                input_mesh=input_mesh,
+                                scalar=scalar,
+                                scalar_value=value,
+                                scalar_type=scalar_type,
+                                colormap=color_map,
+                                limits=range_limits,
+                                n_of_bar_txt_portions=n_of_bar_txt_portions,
+                                output_type=output_type,
+                                from_bayes=from_bayes,
+                                foot_bones=foot_bones,
+                            )
+                else:
+                    if limits:
+                        range_limits = limits
+                    elif consistent_limits:
+                        range_limits = _get_scalar_limits(
+                            input_mesh=input_mesh,
+                            scalar=scalar,
+                            scalar_list=values,
+                            divergent=False,
+                            remove_max_norm=scale_without_max_norm,
+                            average_scalar=False,
+                        )
+                if key in ["Average", "average"]:
                     if scalar in ["BVTV", "CtTh", "BSBV", "Tb_N"]:
                         color_map = scalar_color_dict_256[str(scalar)]
                     else:
                         color_map = scalar_color_dict_10[str(scalar)]
-                else:
-                    color_map = scalar_color_dict_10[str(key)]
-
                 for value in values:
                     if "max_norm" not in value:
-                        scalar_type = f"{key}"
+                        scalar_type = f"{key}"                        
+                        generate_plot(
+                            input_mesh=input_mesh,
+                            scalar=scalar,
+                            scalar_value=value,
+                            scalar_type=scalar_type,
+                            colormap=color_map,
+                            limits=range_limits,
+                            n_of_bar_txt_portions=n_of_bar_txt_portions,
+                            output_type=output_type,
+                            from_bayes=from_bayes,
+                            foot_bones=foot_bones,
+                        )
                     else:
-                        scalar_type = f"max norm. {key}"
-                        if key == "Average":
-                            range_limits = [0.0, 1.0]
-                    generate_plot(
-                        input_mesh=input_mesh,
-                        scalar=scalar,
-                        scalar_value=value,
-                        scalar_type=scalar_type,
-                        colormap=color_map,
-                        limits=range_limits,
-                        n_of_bar_txt_portions=n_of_bar_txt_portions,
-                        output_type=output_type,
-                        from_bayes=from_bayes,
-                        foot_bones=foot_bones,
-                    )
+                        scalar_type = f"max norm. {key}"                    
+                        generate_plot(
+                            input_mesh=input_mesh,
+                            scalar=scalar,
+                            scalar_value=value,
+                            scalar_type=scalar_type,
+                            colormap=color_map,
+                            limits=[0.0, 1.0],
+                            n_of_bar_txt_portions=n_of_bar_txt_portions,
+                            output_type=output_type,
+                            from_bayes=from_bayes,
+                            foot_bones=foot_bones,
+                        )
 
 
 def generate_plot(
