@@ -212,7 +212,7 @@ os.chdir(directory)
 
 # Define the input name and read in to memory for visualization
 bone = "calcaneus"
-mesh_name = f"canonical_{bone}_mean.vtk"
+mesh_name = f"consolidated_{bone}_means_transformed.vtk"
 
 
 # Gather up all the results from the different scalars
@@ -274,9 +274,10 @@ get_scalar_screens(
     limits=False,
     consistent_limits=True,
     n_of_bar_txt_portions=11,
-    output_type="pdf",
+    output_type="png",
     from_bayes=True,
     scale_without_max_norm=False,
+    foot_bones=True,
 )
 
 # For all the scalars with estimated limits
@@ -347,7 +348,7 @@ merge_pdfs(
 bayes_stats = ["_POS_", "CohenD"]
 for output in bayes_stats:
     consolidate_vtk(
-        input_mesh=f"canonical_{bone}_mean.vtk",
+        input_mesh=f"consolidated_{bone}_means_transformed.vtk",
         out_name=f"{bone}_bayes_{output}_thresholds",
         name_match=f"{output}",
         bayes_match=True,
@@ -356,7 +357,7 @@ for output in bayes_stats:
         missing_scalar_name=True,
     )
 
-mesh_name = f"{bone}_bayes_CohenD_thresholded_map.vtk"
+mesh_name = f"{bone}_bayes_CohenD_thresholds.vtk"
 stats_mesh = pv.read(f"{mesh_name}")
 
 # Clean it up if needed
