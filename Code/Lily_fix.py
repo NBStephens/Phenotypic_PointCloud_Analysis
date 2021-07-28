@@ -1,7 +1,3 @@
-
-
-from Code.pycpd_registrations_3D import *
-from Code.visual_utils import *
 import os
 import sys
 import glob
@@ -16,15 +12,18 @@ from vtk.numpy_interface import dataset_adapter as dsa
 
 
 sys.path.append(
-    r'z:/RyanLab/Projects/LDoershuk/diss_pointclouds/Phenotypic_PointCloud_Analysis')
+    r"z:/RyanLab/Projects/LDoershuk/diss_pointclouds/Phenotypic_PointCloud_Analysis"
+)
+from Code.pycpd_registrations_3D import *
+from Code.visual_utils import *
+
 
 ######################################
 #    Begin the actual operations     #
 ######################################
 # To make point clouds from low res case files
 # Set the input Directory
-directory = pathlib.Path(
-    r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\talus")
+directory = pathlib.Path(r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\talus")
 os.chdir(directory)
 point_distance = 2.00
 
@@ -37,8 +36,7 @@ for files in case_list:
 
     # Read in the individual files and define the output name bsaed on the input name
     outName = files.replace(
-        "_Trab_Out_a_femRho.case", "_BVTV_point_cloud_" +
-        str(point_distance) + "mm.csv"
+        "_Trab_Out_a_femRho.case", "_BVTV_point_cloud_" + str(point_distance) + "mm.csv"
     )
     print(outName)
 
@@ -55,7 +53,8 @@ for files in case_list:
 # To make high res point clouds from histomorph output vtks
 # Set the input Directory
 directory = pathlib.Path(
-    r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus\hires_vtks")
+    r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus\hires_vtks"
+)
 os.chdir(directory)
 point_distance = 2.00
 
@@ -85,12 +84,12 @@ for files in vtk_list:
 nsf_folder = pathlib.Path(r"Z:\RyanLab\Projects\nsf_human_variation\Hs")
 
 # The scalars you are statsing on
-scalar_list = ['BVTV', 'DA', 'BSBV', 'Tb_Sp',
-               'Tb_Th', 'BS', 'BV', 'TV', 'TS', 'Tb_N']
+scalar_list = ["BVTV", "DA", "BSBV", "Tb_Sp", "Tb_Th", "BS", "BV", "TV", "TS", "Tb_N"]
 
 # The output for the vtk files
 vtk_out_dir = pathlib.Path(
-    r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus\full_vtk")
+    r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus\full_vtk"
+)
 
 # !!!!!!! THIS WILL NOT WORK WITHOUT SOME SORT OF LIST, HERE IT IS A ROTATION DICT THAT IS MADE BELOW> REPLACE THIS!
 
@@ -122,10 +121,12 @@ for key, value in rotation_dict.items():
     output_mesh_name = f"{value}_consolidated"
     # Run this later in that folder consolidate_vtks() MAKE SURE YOU ARE IN THAT FOLDER... maybe
     try:
-        consolidate_vtk(input_mesh=vtk_out_dir.joinpath(f"{input_mesh_name}.vtk"),
-                        out_name=output_mesh_name,
-                        name_match=input_mesh_name[:-4],
-                        scalars=scalar_list)
+        consolidate_vtk(
+            input_mesh=vtk_out_dir.joinpath(f"{input_mesh_name}.vtk"),
+            out_name=output_mesh_name,
+            name_match=input_mesh_name[:-4],
+            scalars=scalar_list,
+        )
     except FileNotFoundError:
         print(f"{input_mesh_name} not found!")
 
@@ -141,16 +142,16 @@ for key, value in rotation_dict.items():
 # directory = pathlib.Path(r"/gpfs/group/LiberalArts/default/tmr21_collab/RyanLab/Projects/nsf_human_variation/Point_cloud/Calcaneus")
 
 # If on Windows use back slashes with an "r" in front to not that it should be read (double backslashes also work).
-directory = pathlib.Path(
-    r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\talus")
-#point_cloud_dir = pathlib.Path(r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus\point_clouds")
+directory = pathlib.Path(r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\talus")
+# point_cloud_dir = pathlib.Path(r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus\point_clouds")
 
 # Change to the directory with the point cloud files.
 os.chdir(str(directory))
 
 # The results for the autro3dgm matlab. Using the cortical bone alignment is the best practice
 auto3d_dir = pathlib.Path(
-    r"Z:\RyanLab\Projects\LDoershuk\diss_auto3dgm\talus_results\aligned")
+    r"Z:\RyanLab\Projects\LDoershuk\diss_auto3dgm\talus_results\aligned"
+)
 
 # This will be inserted into each name that is generated
 bone = "talus"
@@ -170,76 +171,82 @@ print(canonical_geo)
 group_list = ["BE", "DM", "NF"]
 
 # Define the identifying text for each of the members of the group
-group1_list = ['BE_01',
-               'BE_106',
-               'BE_111',
-               'BE_142',
-               'BE_145',
-               'BE_185',
-               'BE_187',
-               'BE_190',
-               'BE_191',
-               'BE_19A',
-               'BE_20B',
-               'BE_22',
-               'BE_25',
-               'BE_33',
-               'BE_35',
-               'BE_84',
-               'BE_86',
-               'BE_91',
-               'BE_99']
+group1_list = [
+    "BE_01",
+    "BE_106",
+    "BE_111",
+    "BE_142",
+    "BE_145",
+    "BE_185",
+    "BE_187",
+    "BE_190",
+    "BE_191",
+    "BE_19A",
+    "BE_20B",
+    "BE_22",
+    "BE_25",
+    "BE_33",
+    "BE_35",
+    "BE_84",
+    "BE_86",
+    "BE_91",
+    "BE_99",
+]
 
-group2_list = ['DM_276',
-               'DM_278',
-               'DM_333',
-               'DM_362',
-               'DM_365',
-               'DM_381',
-               'DM_398',
-               'DM_399',
-               'DM_404',
-               'DM_426',
-               'DM_466',
-               'DM_475',
-               'DM_495',
-               'DM_496',
-               'DM_530',
-               'DM_560',
-               'DM_589',
-               'DM_643',
-               'DM_677',
-               'DM_815',
-               'DM_831',
-               'DM_842',
-               'DM_859',
-               'DM_898',
-               'DM_930',
-               'DM_957']
+group2_list = [
+    "DM_276",
+    "DM_278",
+    "DM_333",
+    "DM_362",
+    "DM_365",
+    "DM_381",
+    "DM_398",
+    "DM_399",
+    "DM_404",
+    "DM_426",
+    "DM_466",
+    "DM_475",
+    "DM_495",
+    "DM_496",
+    "DM_530",
+    "DM_560",
+    "DM_589",
+    "DM_643",
+    "DM_677",
+    "DM_815",
+    "DM_831",
+    "DM_842",
+    "DM_859",
+    "DM_898",
+    "DM_930",
+    "DM_957",
+]
 
-group3_list = ['NF_106',
-               'NF_10',
-               'NF_132',
-               'NF_205',
-               'NF_20',
-               'NF_216',
-               'NF_217',
-               'NF_229',
-               'NF_236',
-               'NF_243',
-               'NF_27',
-               'NF_37',
-               'NF_41',
-               'NF_44',
-               'NF_45',
-               'NF_49',
-               'NF_50',
-               'NF_66',
-               'NF_69',
-               'NF_6',
-               'NF_71',
-               'NF_80',
-               'NF_90']
+group3_list = [
+    "NF_106",
+    "NF_10",
+    "NF_132",
+    "NF_205",
+    "NF_20",
+    "NF_216",
+    "NF_217",
+    "NF_229",
+    "NF_236",
+    "NF_243",
+    "NF_27",
+    "NF_37",
+    "NF_41",
+    "NF_44",
+    "NF_45",
+    "NF_49",
+    "NF_50",
+    "NF_66",
+    "NF_69",
+    "NF_6",
+    "NF_71",
+    "NF_80",
+    "NF_90",
+]
 
 # Create a list of lists for the identifiers
 group_identifiers = [group1_list, group2_list, group3_list]
@@ -289,9 +296,10 @@ for num, key_value_pairs in enumerate(rotation_dict.items()):
 # This function is needed to register the low res point clouds to the high res.
 # It seems they are generated slightly differently and thus need to be aligned. In the future there will be low res point
 # clouds generated from the high res vtks.
-#batch_register_low_and_high_res(rotation_dict=rotation_dict, point_cloud_dir=directory)
+# batch_register_low_and_high_res(rotation_dict=rotation_dict, point_cloud_dir=directory)
 batch_register_low_and_high_res(
-    rotation_dict=rotation_dict_2, point_cloud_dir=directory)
+    rotation_dict=rotation_dict_2, point_cloud_dir=directory
+)
 
 # These next steps perform the rigid, affine, and deformable registrations automatically.
 batch_rigid(
