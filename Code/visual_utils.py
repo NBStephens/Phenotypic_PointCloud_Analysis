@@ -419,50 +419,88 @@ def get_scalar_screens(
         for key, values in analytical_dict.items():
             if values:
                 print(key)
-                if consistent_limits:
-                    range_limits = _get_scalar_limits(
-                        input_mesh=input_mesh,
-                        scalar=scalar,
-                        scalar_list=values,
-                        divergent=False,
-                        remove_max_norm=scale_without_max_norm,
-                        average_scalar=False,
-                    )
-                if not consistent_limits:
-                    for value in values:
-                        range_max = float(input_mesh.point_arrays[str(value)].max())
-                        range_min = float(input_mesh.point_arrays[str(value)].min())
+                if key in ["Coeff. Var.", "Std. Dev."]:
+                    color_map = scalar_color_dict_10[str(key)]
+                    if consistent_limits:
+                        range_limits = _get_scalar_limits(
+                            input_mesh=input_mesh,
+                            scalar=scalar,
+                            scalar_list=values,
+                            divergent=False,
+                            remove_max_norm=scale_without_max_norm,
+                            average_scalar=False,
+                        )
+                    else:
+                        max_list = []
+                        min_list = []                        
+                        for value in values:
+                            range_max = float(input_mesh.point_arrays[str(value)].max())
+                            range_min = float(input_mesh.point_arrays[str(value)].min())
+                            max_list.append(range_max)
+                            min_list.append(range_min)
+                        range_max = np.array(max_list).max()
+                        range_min = np.array(min_list).min()
                         range_limits = [range_min, range_max]
-
-                if key == "Average":
+                    for value in values:
+                        scalar_type = f"{key}"                        
+                        generate_plot(
+                                input_mesh=input_mesh,
+                                scalar=scalar,
+                                scalar_value=value,
+                                scalar_type=scalar_type,
+                                colormap=color_map,
+                                limits=range_limits,
+                                n_of_bar_txt_portions=n_of_bar_txt_portions,
+                                output_type=output_type,
+                                from_bayes=from_bayes,
+                                foot_bones=foot_bones,
+                            )
+                else:
                     if limits:
                         range_limits = limits
+                    elif consistent_limits:
+                        range_limits = _get_scalar_limits(
+                            input_mesh=input_mesh,
+                            scalar=scalar,
+                            scalar_list=values,
+                            divergent=False,
+                            remove_max_norm=scale_without_max_norm,
+                            average_scalar=False,
+                        )
+                if key in ["Average", "average"]:
                     if scalar in ["BVTV", "CtTh", "BSBV", "Tb_N"]:
                         color_map = scalar_color_dict_256[str(scalar)]
                     else:
                         color_map = scalar_color_dict_10[str(scalar)]
-                else:
-                    color_map = scalar_color_dict_10[str(key)]
-
                 for value in values:
                     if "max_norm" not in value:
-                        scalar_type = f"{key}"
+                        scalar_type = f"{key}"                        
+                        generate_plot(
+                            input_mesh=input_mesh,
+                            scalar=scalar,
+                            scalar_value=value,
+                            scalar_type=scalar_type,
+                            colormap=color_map,
+                            limits=range_limits,
+                            n_of_bar_txt_portions=n_of_bar_txt_portions,
+                            output_type=output_type,
+                            from_bayes=from_bayes,
+                            foot_bones=foot_bones,
+                        )
                     else:
-                        scalar_type = f"max norm. {key}"
-                        if key == "Average":
-                            range_limits = [0.0, 1.0]
-                    generate_plot(
-                        input_mesh=input_mesh,
-                        scalar=scalar,
-                        scalar_value=value,
-                        scalar_type=scalar_type,
-                        colormap=color_map,
-                        limits=range_limits,
-                        n_of_bar_txt_portions=n_of_bar_txt_portions,
-                        output_type=output_type,
-                        from_bayes=from_bayes,
-                        foot_bones=foot_bones,
-                    )
+                        scalar_type = f"max norm. {key}"                    
+                        generate_plot(
+                            input_mesh=input_mesh,
+                            scalar=scalar,
+                            scalar_value=value,
+                            scalar_type=scalar_type,
+                            colormap=color_map,
+                            limits=[0.0, 1.0],
+                            n_of_bar_txt_portions=n_of_bar_txt_portions,
+                            output_type=output_type,
+                            from_bayes=from_bayes,
+                            foot_bones=foot_bones,
+                        )
 
 
 def generate_plot(
