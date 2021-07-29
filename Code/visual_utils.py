@@ -433,7 +433,7 @@ def get_scalar_screens(
                         )
                     else:
                         max_list = []
-                        min_list = []                        
+                        min_list = []
                         for value in values:
                             range_max = float(input_mesh.point_arrays[str(value)].max())
                             range_min = float(input_mesh.point_arrays[str(value)].min())
@@ -443,7 +443,7 @@ def get_scalar_screens(
                         range_min = np.array(min_list).min()
                         range_limits = [range_min, range_max]
                     for value in values:
-                        scalar_type = f"{key}"                        
+                        scalar_type = f"{key}"
                         generate_plot(
                                 input_mesh=input_mesh,
                                 scalar=scalar,
@@ -475,7 +475,7 @@ def get_scalar_screens(
                         color_map = scalar_color_dict_10[str(scalar)]
                 for value in values:
                     if "max_norm" not in value:
-                        scalar_type = f"{key}"                        
+                        scalar_type = f"{key}"
                         generate_plot(
                             input_mesh=input_mesh,
                             scalar=scalar,
@@ -489,7 +489,7 @@ def get_scalar_screens(
                             foot_bones=foot_bones,
                         )
                     else:
-                        scalar_type = f"max norm. {key}"                    
+                        scalar_type = f"max norm. {key}"
                         generate_plot(
                             input_mesh=input_mesh,
                             scalar=scalar,
@@ -800,6 +800,7 @@ def generate_stats_plot(
 
     limits = limits
     stats_mesh = input_mesh
+    stats_mesh.set_active_scalars(f"{scalar_name}")
     print(scalar_name)
     threshed = stats_mesh.threshold(
         value=(-100.0, 100.0), scalars=f"{scalar_name}", preference="points"
@@ -891,6 +892,7 @@ def generate_stats_plot(
         plotter.add_text("Posterior", font_size=f_size)
     else:
         plotter.add_text("Distal", font_size=f_size)
+    plotter_text =f"{group} {scalar} {scalar_type}"
     if f"{scalar} {scalar}" in plotter_text:
         plotter_text = f"All {scalar} {scalar_type}"
     plotter.add_text(
