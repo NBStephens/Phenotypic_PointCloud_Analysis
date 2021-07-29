@@ -27,7 +27,7 @@ from Code.visual_utils import *
 
 
 ########Get your screen shots############
-bone = "calcaneus"
+bone = "tibia"
 directory = pathlib.Path(
     rf"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\{bone}\results"
 )
@@ -47,22 +47,30 @@ rename_dict = {"_std": "_standard_dev", "__": "_", "_coef": "_coef_var", "_var_v
 input_mesh = scalar_name_cleanup(input_mesh=input_mesh, replace_dict=rename_dict)
 input_mesh.save(f"{mesh_name}")
 
+# rename_dict = {"Th_standard_dev_max_norm": "Th_max_norm"}
+# rename_dict = {"Sp_standard_dev_max_norm":"Sp_max_norm"}
+# rename_dict = {"Sp_standard_dev_coef_var":"Sp_coef_var"}
 
-# max_norm_list = [item for item in list(input_mesh.point_arrays) if "max_norm" in item]
-# input_mesh = remove_array(input_mesh=input_mesh, remove_arrays=max_norm_list)
+max_norm_list = [item for item in list(input_mesh.point_arrays) if "max_norm" in item]
+input_mesh = remove_array(input_mesh=input_mesh, remove_arrays=max_norm_list)
 
+DA_norm_list = [
+    item for item in list(input_mesh.point_arrays) if "DA_mean_value" in item
+]
+input_mesh = remove_array(input_mesh=input_mesh, remove_arrays=DA_norm_list)
+input_mesh.save(f"{mesh_name}")
 
 # Output either a png or a pdf
 get_scalar_screens(
     input_mesh=input_mesh,
     scalars=["BVTV"],
-    limits=[0.0, 0.6],
+    limits=[0.0, 0.4],
     consistent_limits=True,
     n_of_bar_txt_portions=6,
     output_type="png",
     from_bayes=False,
     scale_without_max_norm=True,
-    foot_bones=True,
+    foot_bones=False,
 )
 
 # If one scalar is being used or the range should be something different
@@ -208,7 +216,7 @@ os.chdir(vtk_out_dir)
 
 # Bayes directory
 directory = pathlib.Path(
-    r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\talus\visualize"
+    r"Z:\RyanLab\Projects\LDoershuk\diss_pointclouds\calcaneus\visualize"
 )
 os.chdir(directory)
 
@@ -383,11 +391,11 @@ stats_mesh.save(f"{mesh_name}")
 
 get_bayes_thresh_screens(
     input_mesh=stats_mesh,
-    scalars=["BVTV"],
-    limits=[0, 1],
+    scalars=["DA"],
+    limits=[-2, 2],
     estimate_limits=False,
     n_of_bar_txt_portions=11,
-    output_type="pdf",
+    output_type="png",
     foot_bones=True,
 )
 
