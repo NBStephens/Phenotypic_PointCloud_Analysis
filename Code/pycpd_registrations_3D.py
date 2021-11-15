@@ -19,8 +19,7 @@ Author: Nick Stephens, Date: August, 2018
 
 # Print it out so we can see the progress
 
-from Code.PPCA_utils import get_output_path
-from Code.PPCA_utils import _end_timer, _get_outDir, _vtk_print_mesh_info
+
 import os
 import sys
 from typing import Union
@@ -49,7 +48,8 @@ from typing import Union
 
 script_dir = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(str(script_dir.parent))
-
+from Code.PPCA_utils import get_output_path
+from Code.PPCA_utils import _end_timer, _get_outDir, _vtk_print_mesh_info
 
 def visualize(iteration, error, X, Y, ax):
     """
@@ -1956,6 +1956,8 @@ def batch_mapping(
             canonical_vtk=canonical_vtk,
         )
 
+def max_norm(col): 
+     return col / col.max()
 
 def gather_scalars(point_cloud_dir, canonical_vtk, max_normalized=True):
     start = timer()
@@ -1997,6 +1999,8 @@ def gather_scalars(point_cloud_dir, canonical_vtk, max_normalized=True):
     scalar_list = list(scalar_means.columns)
     scalar_list = [item.replace("_Trab_Out_Fem_", "") for item in scalar_list]
     scalar_list = [item.rpartition("_")[0] for item in scalar_list]
+    scalar_list = [item.rpartition("_")[0] for item in scalar_list]
+    scalar_list = [item.rpartition("_")[0] for item in scalar_list]
     scalar_list = list(set(scalar_list))
     print("Mapping", scalar_list)
     if not max_normalized:
@@ -2005,7 +2009,7 @@ def gather_scalars(point_cloud_dir, canonical_vtk, max_normalized=True):
             mapped_list=mapped_list,
             canonical_vtk=canonical_vtk,
             outDir=results_dir,
-            max_normailzed=False,
+            max_normalized=False,
         )
         mesh.save(str(mean_mesh_outname))
     else:
@@ -2014,9 +2018,8 @@ def gather_scalars(point_cloud_dir, canonical_vtk, max_normalized=True):
             mapped_list=mapped_list,
             canonical_vtk=canonical_vtk,
             outDir=results_dir,
-            max_normailzed=True,
+            max_normalized=True,
         )
-
         mesh.save(str(mean_mesh_outname))
         max_mesh.save(str(mean_mesh_max_outname))
     _end_timer(start_timer=start, message="Generating results")
@@ -2028,18 +2031,16 @@ def map_canonical_vtk(
     canonical_vtk,
     outDir,
     group_name="",
-    max_normailzed=True,
+    max_normalized=True,
     write_results=True,
 ):
     mesh = pv.read(canonical_vtk)
-    if max_normailzed == True:
+    if max_normalized == True:
         max_mesh = mesh.copy()
 
     df_list = [pd.read_csv(file) for file in mapped_list]
     df_list = [df.iloc[:, 3:] for df in df_list]
     df_list = pd.concat(df_list, axis=1)
-    def max_norm(col): return col / col.max()
-
     base_name = [mapped.replace("_original_mapped.csv", "")
                  for mapped in mapped_list]
     column_list = [str(pathlib.Path(name).parts[-1]) for name in base_name]
@@ -2051,17 +2052,23 @@ def map_canonical_vtk(
             scalar_name = f"{group_name}_{scalar_name}"
         empty_scalar = pd.DataFrame()
         current_scalars = [
-            item for item in df_list.columns if f"{scalar}_" in item]
+            item for item in df_list.columns if f"{scalar}" in item]
         if scalar == "TV_voxel" or scalar == "TV_smooth":
             current_scalars = [
                 item for item in current_scalars if "BVTV" not in item]
+            current_scalars = [
+                item for item in current_scalars if "BSTV" not in item]
         elif scalar == "BV_voxel" or scalar == "BV_smooth":
             current_scalars = [
                 item for item in current_scalars if "BSBV" not in item]
+        elif scalar == "Tb_Th" or scalar == "Tb_Sp":
+            current_scalars = [
+                item for item in current_scalars if "stddev" not in item]
         elif scalar == "BSBV_voxel" or scalar == "BSBV_smooth":
             current_scalars = [
-                item for item in df_list.columns if f"{scalar}_" in item]
+                item for item in df_list.columns if f"{scalar}" in item]
         print(len(current_scalars), "being mapped")
+        print(current_scalars)
         empty_scalar = [
             pd.concat([empty_scalar, df_list[df]], axis=1) for df in current_scalars
         ]
@@ -2079,7 +2086,7 @@ def map_canonical_vtk(
         mesh[f"{str(scalar_name)}_std"] = standard_dev
         mesh[f"{str(scalar_name)}_coef"] = coef_var
 
-        if max_normailzed == True:
+        if max_normalized == True:
             scalar_df_max_norm = scalar_df.apply(max_norm, axis=0)
 
             if write_results == True:
@@ -2098,7 +2105,7 @@ def map_canonical_vtk(
             max_mesh[f"{str(scalar_name)}_max_norm_std"] = standard_dev_max
             max_mesh[f"{str(scalar_name)}_max_norm_coef"] = coef_var_max
 
-    if max_normailzed == True:
+    if max_normalized == True:
         return mesh, max_mesh
     else:
         return mesh
@@ -2371,7 +2378,7 @@ def get_mean_vtk_groups(
                     canonical_vtk=canonical_vtk,
                     outDir=results_dir,
                     group_name=key,
-                    max_normailzed=True,
+                    max_normalized=True,
                     write_results=False,
                 )
                 mesh.save(f"{outname}.vtk")
@@ -2383,7 +2390,7 @@ def get_mean_vtk_groups(
                     canonical_vtk=canonical_vtk,
                     outDir=results_dir,
                     group_name=key,
-                    max_normailzed=False,
+                    max_normalized=False,
                     write_results=False,
                 )
                 mesh.save(f"{outname}.vtk")
